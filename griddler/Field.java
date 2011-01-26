@@ -13,8 +13,8 @@ import utils.Utils;
 
 class Field implements Icon{
 	private int type;
-	private Color color1;
-	private Color color2;
+	public Color color1;
+	public Color color2;
 
 	public static int EMPTY = 0;
 	public static int SOLID = 1;
@@ -32,17 +32,28 @@ class Field implements Icon{
 		this.type = type;
 		this.color1 = color;
 		this.color2 = color;
+		differentiateColors();
 	}
 	Field(int type, Color color1, Color color2){
 		this.type = type;
 		this.color1 = color1;
 		this.color2 = color2;
+		differentiateColors();
 	}
 	public void setColor1(Color c){
 		color1 = c;
+		differentiateColors();
 	}
 	public void setColor2(Color c){
 		color2 = c;
+		differentiateColors();
+	}
+	public void differentiateColors(){
+		if(color2.equals(color1)){
+			if(color2.equals(Color.BLACK)) color2 = new Color(80,80,80);
+			else color2 = color1.brighter();
+		}
+		if(color2.equals(color1)) color2 = color1.darker();
 	}
 	public int getType(){
 		return type;
@@ -51,6 +62,7 @@ class Field implements Icon{
 		return color1;
 	}
 	public Color getColor2(){
+		if(type==SOLID) return color1;
 		return color2;
 	}
 	public Color getAvgColor(){
@@ -118,9 +130,11 @@ class Field implements Icon{
 
 	}
 	public String toXML(int id){
-		return "<field id=\"" + id + "\"" +
+		String ret = "<field id=\"" + id + "\"" +
 			" type=\"" + typeToString(type) + "\"" +
-			" color1=\"" + Utils.getHTMLColor(color1) + "\"" +
-			" color2=\"" + Utils.getHTMLColor(color2) + "\"/>";
+			" color1=\"" + Utils.getHTMLColor(color1) + "\"";
+		if(type!=SOLID) ret += " color2=\"" + Utils.getHTMLColor(color2) + "\"";
+		ret += "/>";
+		return ret;
 	}
 }

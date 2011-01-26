@@ -191,8 +191,18 @@ public class Main{
 		menuItemGenDesc.setMnemonic(KeyEvent.VK_G);
 		menuEdit.add(menuItemGenDesc);
 
+		JMenuItem menuItemDelUnusedColors =new JMenuItem(new AbstractAction(TR.t("Delete unused fields")){
+			public void actionPerformed(ActionEvent e){
+				board.getData().delUnusedFields();
+			}
+		});
+		menuItemDelUnusedColors.setMnemonic(KeyEvent.VK_D);
+		menuEdit.add(menuItemDelUnusedColors);
+
+
 		JMenuItem menuItemNormalize = new JMenuItem(new AbstractAction(TR.t("Normalize")){
 			public void actionPerformed(ActionEvent e){
+				board.getData().delUnusedFields();
 				board.getData().crop();
 				board.getData().genDesc();
 			}

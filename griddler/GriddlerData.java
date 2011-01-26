@@ -55,8 +55,11 @@ public interface GriddlerData extends Cloneable{
 	void addRightCol();
 	void addTopRow();
 	void addBottomRow();
+
+	//normalize
 	void crop();
 	void genDesc();
+	public void delUnusedFields();
 
 	//solving
 	int checkBoardFinished();

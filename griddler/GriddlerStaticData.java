@@ -314,6 +314,20 @@ public class GriddlerStaticData implements GriddlerData{
 		return fields.toArray(new Field[]{ });
 	}
 
+	public void delField(int i){
+		//deletes field, updates board, sets -1 insted of this field val
+		fields.remove(i);
+		for(int x=0; x<getW(); x++){
+			for(int y=0; y<getH(); y++){
+				if(grid[x][y] > 0){
+					if(grid[x][y] == i) grid[x][y] = -1;
+					else if(grid[x][y]>i) grid[x][y]--;
+				}
+			}
+		}
+
+
+	}
 	public void addField(Field f){
 		fields.add(f);
 		fireFieldsListChanged();
@@ -642,6 +656,25 @@ public class GriddlerStaticData implements GriddlerData{
 
 		checkBoardFinished();
 		fireDescChanged();
+	}
+	public void delUnusedFields(){
+		int fieldsUsed[] = new int[fields.size()];
+		for(int i=0; i<fields.size(); i++) fieldsUsed[i] = 0;
+		fieldsUsed[0] = 1; //background is always used
+		for(int x=0; x<getW(); x++){
+			for(int y=0; y<getH(); y++){
+				if(grid[x][y] > 0){
+					fieldsUsed[grid[x][y]]++;
+				}
+			}
+		}
+		int fieldsDeleted = 0;
+		for(int i=0; i<fieldsUsed.length; i++){
+			if(fieldsUsed[i] == 0){
+				delField(i-fieldsDeleted);
+				fieldsDeleted++;
+			}
+		}
 	}
 
 	public String metaToXML(){

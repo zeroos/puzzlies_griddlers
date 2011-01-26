@@ -30,6 +30,7 @@ import javax.swing.KeyStroke;
 import javax.swing.undo.*;
 
 import utils.MyPreferences;
+import utils.Stopwatch;
 import utils.TR;
 
 /**
@@ -40,6 +41,7 @@ import utils.TR;
 public class GriddlerBoard extends JPanel{
 	private GriddlerData data;
 	private MyPreferences pref;
+	public Stopwatch stopwatch;
 	private UndoManager undoManager = new UndoManager();
 	private boolean paused = false;
 
@@ -124,6 +126,8 @@ public class GriddlerBoard extends JPanel{
 		this.data = data;
 		this.editMode = editMode;
 		this.finishAction = finishAction;
+		this.stopwatch = new Stopwatch();
+		this.stopwatch.start();
 		pref = MyPreferences.getInstance();
 
 		init();
@@ -875,9 +879,11 @@ public class GriddlerBoard extends JPanel{
 	}
 	public void pause(){
 		paused = true;
+		stopwatch.pause();
 		repaint();
 	}
 	public void unpause(){
+		stopwatch.start();
 		paused = false;
 		repaint();
 	}

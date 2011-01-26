@@ -41,8 +41,9 @@ import utils.*;
  * @author zeroos
  **/
 public class GriddlerApplet extends JApplet{
-	public static final String HOST = "http://tinybeast/";
+	public static final String HOST = "http://puzzlies.net/";
 	//public static final String HOST = "http://cdauth.eu:8090/";
+	//public static final String HOST = "http://tinybeast/";
 
 	private File file;
 	private griddler.GriddlerBoard board;
@@ -83,6 +84,10 @@ public class GriddlerApplet extends JApplet{
 								+ URLEncoder.encode(board.getData().getBoardDataMD5(), "UTF-8");
 							data += "&" + URLEncoder.encode("timetoken", "UTF-8") + "=" 
 								+ URLEncoder.encode(getParameter("timetoken"), "UTF-8");
+							data += "&" + URLEncoder.encode("time", "UTF-8") + "="
+								+ URLEncoder.encode(Long.toString(board.stopwatch.getTime()), "UTF-8");
+							data += "&" + URLEncoder.encode("was_paused", "UTF-8") + "="
+								+ URLEncoder.encode(board.stopwatch.wasPaused()?"True":"False", "UTF-8");
 	
 			
 							//POST data
@@ -102,8 +107,13 @@ public class GriddlerApplet extends JApplet{
 							if(result.equals("OK")){
 								//reload page
 								//get a string without query part
-								URL redirectTo = new URL(applet.getDocumentBase().toString().substring(0,
-											applet.getDocumentBase().toString().indexOf('?')));
+								int queryStr = applet.getDocumentBase().toString().indexOf('?');
+								URL redirectTo;
+								if(queryStr != -1){
+									redirectTo = new URL(applet.getDocumentBase().toString().substring(0, queryStr));
+								}else{
+									redirectTo = new URL(applet.getDocumentBase().toString());
+								}
 								applet.getAppletContext().showDocument(redirectTo, "_self");
 								return;
 							}else if(result.equals("INCORRECT_SOLUTION")){
@@ -122,6 +132,7 @@ public class GriddlerApplet extends JApplet{
 							String msg = TR.t("An error occured while connecting to the server. Try again.");
 							JOptionPane.showMessageDialog(null, msg, TR.t("Connection error"), JOptionPane.ERROR_MESSAGE); 
 							System.err.println(msg);
+							ex.printStackTrace();
 						}
 					}
 				}
