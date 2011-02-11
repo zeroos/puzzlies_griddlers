@@ -33,10 +33,14 @@ public class Main{
 	/**
 	 * @param args the command line arguments
 	 */
-	public static void main(String[] args) {
+	public static void main(final String[] args) {
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
-				createAndShowGUI();
+				if(args.length > 0){
+					createAndShowGUI(args[0]);
+				}else{
+					createAndShowGUI();
+				}
 			}
 		});
 	}
@@ -75,13 +79,17 @@ public class Main{
 	}
 
 	private static void createAndShowGUI() {
+		createAndShowGUI();
+	}
+	private static void createAndShowGUI(String file) {
 		f = new JFrame(TR.t("Griddler tester"));
 		f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	//	f.setFocusTraversalKeys(KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS, Collections.EMPTY_SET);
 	//	f.setFocusTraversalKeys(KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS, Collections.EMPTY_SET);
 
 
-		board = new griddler.GriddlerBoard();
+		if(file!=null) board = new griddler.GriddlerBoard(new griddler.GriddlerStaticData(file));
+		else board = new griddler.GriddlerBoard();
 		solver = new griddler.GriddlerSolver(board);
 
 		f.setJMenuBar(getMenuBar());

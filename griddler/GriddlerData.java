@@ -22,6 +22,7 @@ public interface GriddlerData extends Cloneable{
 
 	void setGrid(int[][] grid);
 	void setFieldVal(int v, int x, int y);
+	void setDesc(Desc d);
 
 	Field getField(int n);
 	Field getField(int n, boolean emptyFields);
@@ -58,6 +59,7 @@ public interface GriddlerData extends Cloneable{
 
 	//normalize
 	void crop();
+	void crop(int w, int h); //crops to specified size, deletes fields
 	void genDesc();
 	public void delUnusedFields();
 

@@ -246,6 +246,9 @@ public class GriddlerStaticData implements GriddlerData{
 		fireFieldChanged(-1,-1);
 		checkBoardFinished();
 	}
+	public void setDesc(Desc d){
+		desc = d;
+	}
 	public int[] getRow(int n){
 		int[] row = new int[getW()];
 		for(int i=0; i< row.length; i++){
@@ -585,7 +588,13 @@ public class GriddlerStaticData implements GriddlerData{
 		return returnVal;
 	}
 
-
+	public void crop(int w, int h){
+		//crops the board to the specified size, deletes fields from left and right border
+		while(w < this.getW()) delCol(grid.length);
+		while(w > this.getW()) addRightCol();
+		while(h < this.getH()) delRow(grid[0].length);
+		while(h > this.getH()) addBottomRow();
+	}
 	public void crop(){
 		//when in edit mode deletes empty lines around picture
 		//check columns

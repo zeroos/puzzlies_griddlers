@@ -5,9 +5,14 @@ package griddler;
  * @author zeroos
  */
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.Iterator;
 
 
 public class GriddlerSolver{
+	public static final boolean VERBOSE = false;
+
 	GriddlerBoard board;
 	GriddlerData data;
 	String stepDesc = "";
@@ -59,7 +64,7 @@ public class GriddlerSolver{
 		try{
 			solve(1);
 		}catch(UnsolvableException e){
-			System.out.println("Sry, unsolvable.");
+			if(VERBOSE) System.out.println("Sry, unsolvable.");
 		}
 	}
 
@@ -71,28 +76,35 @@ public class GriddlerSolver{
 			if(numberOfSteps == 0) return;
 			boolean changed = false;
 	
-			while(forEachRowAndColumn(new SimpleBoxesAlgorithm(), numberOfSteps)){
-				System.out.println("Simple boxes: board changed.");
+/*			while(forEachRowAndColumn(new SimpleBoxesAlgorithm(), numberOfSteps)){
+				if(VERBOSE) System.out.println("Simple boxes: board changed.");
 				numberOfSteps--;
 				changed = true;
 				if(numberOfSteps == 0) return;
 			}
 			while(forEachRowAndColumn(new SimpleSpacesAlgorithm(), numberOfSteps)){
-				System.out.println("Simple spaces: board changed.");
+				if(VERBOSE) System.out.println("Simple spaces: board changed.");
+				numberOfSteps--;
+				changed = true;
+				if(numberOfSteps == 0) return;
+			}*/
+			while(forEachRowAndColumn(new CompleteLineAlgorithm(), numberOfSteps)){
+				if(VERBOSE) System.out.println("CompleteLine: board changed.");
 				numberOfSteps--;
 				changed = true;
 				if(numberOfSteps == 0) return;
 			}
+
 			if(data.checkBoardFinished(false) == 1){
-				System.out.println("Board finished.");
+				if(VERBOSE) System.out.println("Board finished.");
 				return;
 			}
 			makeAssumption();
 			if(data.checkBoardFinished(false) != 1) throw new UnsolvableException(UnsolvableException.CONTRADICTION); //end of board, no solutions
 		}catch(UnsolvableException e){
-			if(e.getReason() == e.MULTIPLE_SOLUTIONS) System.out.println("Multiple solutions");
+			if(e.getReason() == e.MULTIPLE_SOLUTIONS) if(VERBOSE) System.out.println("Multiple solutions");
 			else if(e.getReason() == e.CONTRADICTION){
-				System.out.println("Contradiction");
+				if(VERBOSE) System.out.println("Contradiction");
 //				e.printStackTrace();
 			}
 			throw e;
@@ -104,7 +116,7 @@ public class GriddlerSolver{
 			for(int y=0; y<data.getH(); y++){
 				//find an unfilled field
 				if(data.getFieldVal(x,y) == -1){
-					System.out.println("-1!");
+					if(VERBOSE) System.out.println("-1!");
 					//copy data
 					GriddlerData solution = null;
 					for(int i=0; i<data.getFields().length; i++){
@@ -113,9 +125,9 @@ public class GriddlerSolver{
 						newData.setFieldVal(i, x, y);
 						assumptionCounter++;
 						int assumptionNum = assumptionCounter;
-						System.out.println("Assumption " + assumptionCounter + ": field " + x + "x"+ y + " set to " + i);
+						if(VERBOSE) System.out.println("Assumption " + assumptionCounter + ": field " + x + "x"+ y + " set to " + i);
 						if(data.checkBoardFinished(false) == -1){
-							System.out.println(" ^^^ instantly failed");
+							if(VERBOSE) System.out.println(" ^^^ instantly failed");
 							continue;
 						}
 						GriddlerSolver newSolver = new GriddlerSolver(newData);
@@ -125,9 +137,9 @@ public class GriddlerSolver{
 								throw new UnsolvableException(UnsolvableException.MULTIPLE_SOLUTIONS);
 							}
 							solution = newSolver.getData().clone();
-							System.out.println(assumptionNum + " success");
+							if(VERBOSE) System.out.println(assumptionNum + " success");
 						}catch(UnsolvableException e){
-							System.out.println(assumptionNum + " failed");
+							if(VERBOSE) System.out.println(assumptionNum + " failed");
 						}
 					}
 					if(solution != null) this.data.setGrid(solution.getGrid());
@@ -153,7 +165,7 @@ public class GriddlerSolver{
 					stepPerformed = true;
 				}
 			}catch(IndexOutOfBoundsException e){
-				System.out.println("out");
+				if(VERBOSE) System.out.println("out");
 //				e.printStackTrace();
 			}
 		}
@@ -166,7 +178,7 @@ public class GriddlerSolver{
 					stepPerformed = true;
 				}
 			}catch(IndexOutOfBoundsException e){
-				System.out.println("out");
+				if(VERBOSE) System.out.println("out");
 //				e.printStackTrace();
 			}
 		}
@@ -230,9 +242,176 @@ public class GriddlerSolver{
 		}
 	}
 
+	private class CompleteLineAlgorithm extends SolvingAlgorithm{
+		ArrayList<int[]> possibleSolutions;
+		boolean newFieldFound;
+		int[] availableFieldValues;
+		int[] fs;
+		ArrayList<DescField> ds;
+
+		public boolean solve(int[] fs, ArrayList<DescField> ds) throws UnsolvableException{
+			if(ds.size()==0) return false;
+			possibleSolutions = new ArrayList<int[]>();
+			newFieldFound = false;
+			availableFieldValues = getAvailableFieldValues(ds);
+			this.fs = fs;
+			this.ds = ds;
+
+			int[] solution = new int[fs.length];
+			System.arraycopy(fs, 0, solution, 0, fs.length);
+
+			
+			if(VERBOSE) System.out.println("Possible solutions before solve: " + possibleSolutions.size());
+			solve(0,0);
+
+
+			if(VERBOSE) System.out.println("So far:");
+			for(int j=0; j<solution.length;j++){
+				if(VERBOSE) System.out.print(solution[j] + ",");
+			}
+			if(VERBOSE) System.out.println();
+			if(VERBOSE) System.out.println("Possible solutions: " + possibleSolutions.size());
+			for(int i=0; i<possibleSolutions.size(); i++){
+				for(int j=0; j<possibleSolutions.get(i).length;j++){
+					if(VERBOSE) System.out.print(possibleSolutions.get(i)[j] + ",");
+				}
+				if(VERBOSE) System.out.println();
+			}
+
+			//checks each possible sollution to determine new fields
+			for(int i=0; i<solution.length; i++){//for each field
+				int possibleFieldValue=-1;
+				if(solution[i] != -1){//known value
+					continue;
+				}
+				for(int s=0; s<possibleSolutions.size(); s++){//for each solution
+					int[] sol = possibleSolutions.get(s);
+					if(s==0){
+						possibleFieldValue = sol[i];
+					}else if(possibleFieldValue != sol[i]){
+						possibleFieldValue = -1;
+						break;
+					}
+				}
+				if(possibleFieldValue != -1){//possible solution was found
+					solution[i] = possibleFieldValue;
+					newFieldFound = true;
+				}
+			}
+			setNewFieldSet(solution);
+			return newFieldFound;
+
+
+
+		}
+
+		public void solve(int pos, int descPos) throws UnsolvableException{
+			if(VERBOSE) System.out.println("solve("+pos+","+descPos+");");
+			int rightPadding = 0;
+
+			int blockLength = ds.get(descPos).getLength();
+			int blockValue = ds.get(descPos).getValue();
+
+			//count rightPadding
+			int previousValue = blockValue;
+			for(int i=descPos+1; i<ds.size();i++){
+				if(ds.get(i).getValue() == previousValue) rightPadding++;
+				rightPadding+=ds.get(i).getLength();
+				previousValue = ds.get(i).getValue();
+			}
+
+
+			if(VERBOSE) System.out.println("A: " + rightPadding);
+			for(int i=pos; i<=fs.length-rightPadding-blockLength; i++){
+				int isPossible = isPossible(descPos, i, pos);
+				if(isPossible == 1){
+					int old_data[] = new int[blockLength];
+					for(int j=0; j<blockLength; j++){
+						old_data[j] = fs[i+j];
+						fs[i+j] = blockValue;
+					}
+					if(descPos+1 < ds.size()){
+						if(ds.get(descPos+1).getValue() == blockValue){
+							solve(i+blockLength+1, descPos+1);
+						}else{
+							solve(i+blockLength, descPos+1);
+						}
+					}else{
+						markPossibleSolution();
+					}
+					//restore previous data
+					for(int j=0; j<blockLength; j++){
+						fs[i+j] = old_data[j];
+					}
+				}else if(isPossible == -1){
+					break;
+				}
+			}	
+		}
+		public int isPossible(int descPos, int pos, int startPos){
+			//checks if it is possible to insert a block from descPos into a pos,
+			//assumes that the grid start at startPos AND that it is called for each possibility 
+				//(you SHOULD NOT expect it to work if you pass something that's in the middle)
+
+			//returns -1 if it is NOT possible and there is no point in moving further [ie the block was skipped]
+			//returns 0 if it is NOT possible, but you should move further
+			//returns 1 if it is possible
+
+			int blockLength = ds.get(descPos).getLength();
+			int blockValue = ds.get(descPos).getValue();
+
+
+			//check if no blocks were skipped
+			if(pos>startPos){
+				if(fs[pos-1]==blockValue){
+					if(VERBOSE) System.out.println("S: skipped; pos: " + pos + " startPos: " + startPos);
+					return -1;
+				}
+			}
+
+			//check if not covers any different colors
+			for(int i=pos; i<pos+blockLength; i++){
+				if(fs[i] != -1 && fs[i] != blockValue){
+					if(VERBOSE) System.out.println("S: different color");
+					return 0;
+				}
+			}
+			//check if not collides with any other block of the same value
+			try{
+				if(fs[pos-1] == blockValue || fs[pos+blockLength+1] == blockValue){
+					if(VERBOSE) System.out.println("S: collision");
+					return 0;
+				}
+			}catch(ArrayIndexOutOfBoundsException e){ }
+
+			if(VERBOSE) System.out.println("S: Possible");
+			return 1;
+
+		}
+		public void markPossibleSolution(){
+			int[] solution = new int[fs.length];
+			System.arraycopy(fs, 0, solution, 0, fs.length);
+			possibleSolutions.add(solution);
+		}
+	}
+
 	private abstract class SolvingAlgorithm{
 		int[] newFieldSet = new int[]{};
+
+		//returns true if new fields were found
 		public abstract boolean solve(int[] fieldSet, ArrayList<DescField> descFieldSet) throws UnsolvableException;
+		int[] getAvailableFieldValues(ArrayList<DescField> ds){
+			Set valuesSet = new HashSet();
+			for(int i=0; i<ds.size(); i++){
+				valuesSet.add(ds.get(i).getValue());
+			}
+			int[] values = new int[valuesSet.size()];
+			Iterator it = valuesSet.iterator();
+			for(int i=0; i<values.length; i++){
+				values[i] = (Integer)it.next();
+			}
+			return values;
+		}
 		public int[] getNewFieldSet(){
 			return newFieldSet;
 		}

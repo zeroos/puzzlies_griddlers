@@ -40,6 +40,7 @@ import utils.TR;
 
 public class GriddlerBoard extends JPanel{
 	private GriddlerData data;
+	private GriddlerData editData;
 	private MyPreferences pref;
 	public Stopwatch stopwatch;
 	private UndoManager undoManager = new UndoManager();
@@ -134,12 +135,12 @@ public class GriddlerBoard extends JPanel{
 	}
 	
 	public void calcGridSize(){
-		gridOffsetX = offsetX+(data.getDesc().getLongestRow())*fieldW;
-		gridOffsetY = offsetY+(data.getDesc().getLongestCol())*fieldH;
+		gridOffsetX = offsetX+(getData().getDesc().getLongestRow())*fieldW;
+		gridOffsetY = offsetY+(getData().getDesc().getLongestCol())*fieldH;
 		linesOffsetX = gridOffsetX;
 		linesOffsetY = gridOffsetY;
-		gridW = data.getW()*fieldW;
-		gridH = data.getH()*fieldH;
+		gridW = getData().getW()*fieldW;
+		gridH = getData().getH()*fieldH;
 		if(editMode){
 			gridOffsetX += fieldW;
 			gridOffsetY += fieldH;
@@ -231,7 +232,7 @@ public class GriddlerBoard extends JPanel{
 					final int x = (int)Math.floor((float)(e.getX()-gridOffsetX)/fieldW);
 					final int y = (int)Math.floor((float)(e.getY()-gridOffsetY)/fieldH);
 					if(x>=0 && y>=0){
-						final int prevFieldVal = data.getFieldVal(x,y);
+						final int prevFieldVal = getData().getFieldVal(x,y);
 						final int newFieldVal;
 						if((e.getModifiers()&e.BUTTON2_MASK) != 0){
 							newFieldVal = middleColorVal;
@@ -251,16 +252,16 @@ public class GriddlerBoard extends JPanel{
 								new AbstractUndoableEdit(){
 									public void undo(){
 										super.undo();
-										data.setFieldVal(prevFieldVal,x,y);
+										getData().setFieldVal(prevFieldVal,x,y);
 									}
 									public void redo(){
 										super.redo();
-										data.setFieldVal(newFieldVal,x,y);
+										getData().setFieldVal(newFieldVal,x,y);
 									}
 								})
 							);
 							//set field value
-							data.setFieldVal(newFieldVal,x,y);
+							getData().setFieldVal(newFieldVal,x,y);
 						}
 
 					}
@@ -280,7 +281,7 @@ public class GriddlerBoard extends JPanel{
 					final int x = (int)Math.floor((float)(e.getX()-gridOffsetX)/fieldW);
 					final int y = (int)Math.floor((float)(e.getY()-gridOffsetY)/fieldH);
 					if(x>=0 && y>=0){
-						final int prevFieldVal = data.getFieldVal(x,y);
+						final int prevFieldVal = getData().getFieldVal(x,y);
 						final int newFieldVal;
 						if(e.getButton() == e.BUTTON2){
 							newFieldVal = middleColorVal;
@@ -298,16 +299,16 @@ public class GriddlerBoard extends JPanel{
 							new AbstractUndoableEdit(){
 								public void undo(){
 									super.undo();
-									data.setFieldVal(prevFieldVal,x,y);
+									getData().setFieldVal(prevFieldVal,x,y);
 								}
 								public void redo(){
 									super.redo();
-									data.setFieldVal(newFieldVal,x,y);
+									getData().setFieldVal(newFieldVal,x,y);
 								}
 							})
 						);
 						//set field value
-						data.setFieldVal(newFieldVal,x,y);	
+						getData().setFieldVal(newFieldVal,x,y);	
 
 					}
 				//only when mouse over desc rows
@@ -321,9 +322,9 @@ public class GriddlerBoard extends JPanel{
 					try{
 						//in front of each line is a gap,
 						//due to that they should be moved
-						x-= data.getDesc().getLongestRow()-data.getDesc().getRow(y).size();
+						x-= getData().getDesc().getLongestRow()-getData().getDesc().getRow(y).size();
 
-						DescField f = data.getDesc().getRow(y).get(x);
+						DescField f = getData().getDesc().getRow(y).get(x);
 						if(e.getButton() == e.BUTTON1){
 							setLeftColor(f.value);
 							if(e.getClickCount() == 2){
@@ -349,9 +350,9 @@ public class GriddlerBoard extends JPanel{
 					try{
 						//in front of each line is a gap,
 						//due to that they should be moved
-						y-= data.getDesc().getLongestCol()-data.getDesc().getCol(x).size();
+						y-= getData().getDesc().getLongestCol()-getData().getDesc().getCol(x).size();
 
-						DescField f = data.getDesc().getCol(x).get(y);
+						DescField f = getData().getDesc().getCol(x).get(y);
 						if(e.getButton() == e.BUTTON1){
 							setLeftColor(f.value);
 							if(e.getClickCount() == 2){
@@ -372,10 +373,10 @@ public class GriddlerBoard extends JPanel{
 						//add new col area
 						if(e.getX() < gridOffsetX){
 							//at the front
-							data.addLeftCol();
+							getData().addLeftCol();
 						}else{
 							//at the end
-							data.addRightCol();
+							getData().addRightCol();
 						}						
 					}else if(e.getX() > gridOffsetX && 
 							e.getX() < gridOffsetX+gridW &&
@@ -384,10 +385,10 @@ public class GriddlerBoard extends JPanel{
 						//add new row area
 						if(e.getY() < gridOffsetY){
 							//at the front
-							data.addTopRow();
+							getData().addTopRow();
 						}else{
 							//at the end
-							data.addBottomRow();
+							getData().addBottomRow();
 						}
 
 					}
@@ -401,11 +402,11 @@ public class GriddlerBoard extends JPanel{
 					final int endX = currentlySelectedFieldX > lastSelectedFieldX?currentlySelectedFieldX:lastSelectedFieldX;
 					final int endY = currentlySelectedFieldY > lastSelectedFieldY?currentlySelectedFieldY:lastSelectedFieldY;
 					final int prevColor = paintingColor;
-					int[][] tempGrid = new int[data.getW()][data.getH()];
+					int[][] tempGrid = new int[getData().getW()][getData().getH()];
 					for(int x=startX; x<=endX; x++){
 						for(int y=startY; y<=endY; y++){
-							tempGrid[x][y] = data.getFieldVal(x,y);
-							data.setFieldVal(paintingColor, x,y);
+							tempGrid[x][y] = getData().getFieldVal(x,y);
+							getData().setFieldVal(paintingColor, x,y);
 						}
 					}
 					final int[][] prevGrid = tempGrid;
@@ -414,7 +415,7 @@ public class GriddlerBoard extends JPanel{
 							super.undo();
 							for(int x=startX; x<=endX; x++){
 								for(int y=startY; y<=endY; y++){
-									data.setFieldVal(prevGrid[x][y], x,y);
+									getData().setFieldVal(prevGrid[x][y], x,y);
 								}
 							}
 						}
@@ -422,7 +423,7 @@ public class GriddlerBoard extends JPanel{
 							super.redo();
 							for(int x=startX; x<=endX; x++){
 								for(int y=startY; y<=endY; y++){
-									data.setFieldVal(prevColor, x,y);
+									getData().setFieldVal(prevColor, x,y);
 								}
 							}
 
@@ -438,7 +439,7 @@ public class GriddlerBoard extends JPanel{
 	}
 
 	private void addGriddlerDataListenerToData(){
-		data.addGriddlerDataListener(new GriddlerDataListener(){
+		getData().addGriddlerDataListener(new GriddlerDataListener(){
 			public void fieldChanged(int x, int y){
 				if(x==-1){
 					calcGridSize();
@@ -547,19 +548,19 @@ public class GriddlerBoard extends JPanel{
 	}
 
 	public void setLeftColor(int c){
-		if(c<data.getFields().length && c>-2){
+		if(c<getData().getFields().length && c>-2){
 			fireChange();
 			leftColorVal = c;
 		}
 	}
 	public void setMiddleColor(int c){
-		if(c<data.getFields().length && c>-2){
+		if(c<getData().getFields().length && c>-2){
 			fireChange();
 			middleColorVal = c;
 		}
 	}
 	public void setRightColor(int c){
-		if(c<data.getFields().length && c>-2){
+		if(c<getData().getFields().length && c>-2){
 			fireChange();
 			rightColorVal = c;
 		}
@@ -587,7 +588,11 @@ public class GriddlerBoard extends JPanel{
 	}
 
 	public GriddlerData getData(){
-		return data;
+		if(!editMode){
+			return data;
+		}else{
+			return editData;
+		}
 	}
 	public void setData(GriddlerData gd){
 		for(GriddlerDataListener listener: data.getGriddlerDataListeners()){
@@ -611,7 +616,7 @@ public class GriddlerBoard extends JPanel{
 		if(hlCol == n) return;
 		if(hlCol != -2) repaint(gridOffsetX+hlCol*fieldW-1, offsetY, fieldW+3, 1+gridH+gridOffsetY+(editMode?fieldW:0));
 
-		if(n < 0 || n >= data.getW()) hlCol = -2;
+		if(n < 0 || n >= getData().getW()) hlCol = -2;
 		else{
 		       	hlCol = n;
 			//repaint new area
@@ -624,7 +629,7 @@ public class GriddlerBoard extends JPanel{
 		if(hlRow == n) return;
 		if(hlRow != -2) repaint(offsetX, gridOffsetY+hlRow*fieldH-1, 1+gridW+gridOffsetX+(editMode?fieldH:0), gridH+3);
 
-		if(n < 0 || n >= data.getH()) hlRow = -2;
+		if(n < 0 || n >= getData().getH()) hlRow = -2;
 		else{
 			hlRow = n;
 			//repaint new area
@@ -634,7 +639,18 @@ public class GriddlerBoard extends JPanel{
 	}
 	public void setEditMode(boolean editMode){
 		this.editMode = editMode;
-
+		if(editMode && editData == null){
+			editData = new GriddlerStaticData();
+			for(GriddlerDataListener gdl: data.getGriddlerDataListeners()){
+				editData.addGriddlerDataListener(gdl);
+			}
+		}
+		if(editMode){//synchronise descriptions and data size
+			editData.setDesc(data.getDesc());
+		}else{
+			data.setDesc(editData.getDesc());
+			data.crop(editData.getW(), editData.getH());
+		}
 		calcGridSize();
 		repaint();
 		revalidate();
@@ -655,20 +671,20 @@ public class GriddlerBoard extends JPanel{
 		}
 	}
 	protected void paintGrid(Graphics g){
-		for(int y=0; y<data.getH(); y++){
-			for(int x=0; x<data.getW(); x++){
+		for(int y=0; y<getData().getH(); y++){
+			for(int x=0; x<getData().getW(); x++){
 				Field f;
 				if(selectMode == BLOCK && selectionInProgress){
 					if(((x >= lastSelectedFieldX && x <= currentlySelectedFieldX) || 
 					    (x <= lastSelectedFieldX && x >= currentlySelectedFieldX)) &&
 					   ((y >= lastSelectedFieldY && y <= currentlySelectedFieldY) || 
 					    (y <= lastSelectedFieldY && y >= currentlySelectedFieldY))){
-							f = data.getField(paintingColor);
+							f = getData().getField(paintingColor);
 					}else{
-						f = data.getField(x,y, !editMode);
+						f = getData().getField(x,y, !editMode);
 					}
 				}else{
-					f = data.getField(x,y, !editMode);
+					f = getData().getField(x,y, !editMode);
 				}
 				f.paint(g,
 					gridOffsetX+x*fieldW,
@@ -693,17 +709,17 @@ public class GriddlerBoard extends JPanel{
 			descOffsetY = this.gridOffsetY;
 			descOffsetX = this.gridOffsetX;
 		}
-		for(int x=0; x<data.getDesc().getColsSize(); x++){
-			int lineStart = descOffsetY-data.getDesc().getCol(x).size()*fieldH;
+		for(int x=0; x<getData().getDesc().getColsSize(); x++){
+			int lineStart = descOffsetY-getData().getDesc().getCol(x).size()*fieldH;
 			int linePos = descOffsetX+x*fieldW;
 			if(editMode) linePos += fieldW;
-			for(int y=0; y<data.getDesc().getCol(x).size(); y++){
-				DescField f = data.getDesc().getCol(x).get(y);
+			for(int y=0; y<getData().getDesc().getCol(x).size(); y++){
+				DescField f = getData().getDesc().getCol(x).get(y);
 				Field field;
 				try{
-					field = data.getField(f.value);
+					field = getData().getField(f.value);
 				}catch(IndexOutOfBoundsException e){
-					field = data.getField(0);
+					field = getData().getField(0);
 				}
 				f.paint(g, field, linePos, lineStart+y*fieldH, fieldW, fieldH);
 								g.setColor(lineColor);
@@ -714,17 +730,17 @@ public class GriddlerBoard extends JPanel{
 
 			}
 		}
-		for(int y=0; y<data.getDesc().getRowsSize(); y++){
-			int lineStart = descOffsetX-data.getDesc().getRow(y).size()*fieldW;
+		for(int y=0; y<getData().getDesc().getRowsSize(); y++){
+			int lineStart = descOffsetX-getData().getDesc().getRow(y).size()*fieldW;
 			int linePos = descOffsetY+y*fieldH;
 			if(editMode) linePos += fieldH;
-			for(int x=0; x<data.getDesc().getRow(y).size(); x++){
-				DescField f = data.getDesc().getRow(y).get(x);
+			for(int x=0; x<getData().getDesc().getRow(y).size(); x++){
+				DescField f = getData().getDesc().getRow(y).get(x);
 				Field field;
 				try{
-					field = data.getField(f.value);
+					field = getData().getField(f.value);
 				}catch(IndexOutOfBoundsException e){
-					field = data.getField(0);
+					field = getData().getField(0);
 				}
 				f.paint(g, field, lineStart+x*fieldW, linePos, fieldW, fieldH);
 
@@ -769,13 +785,13 @@ public class GriddlerBoard extends JPanel{
 		//draw grid
 		g.setColor(lineColor);
 		int prevLineL = 0;
-		for(int y=0; y<=data.getH(); y++){
+		for(int y=0; y<=getData().getH(); y++){
 			//horizontal lines
 			int lineL;
 			//count line length
-			if(y!=data.getH()){
+			if(y!=getData().getH()){
 				try{
-					lineL = data.getDesc().getRow(y).size();
+					lineL = getData().getDesc().getRow(y).size();
 				}catch(IndexOutOfBoundsException e){
 					lineL = 0;
 				}
@@ -790,13 +806,13 @@ public class GriddlerBoard extends JPanel{
 
 			g.drawLine(	linesOffsetX-(prevLineL>lineL?prevLineL:lineL)*fieldW,
 					gridOffsetY+y*fieldH,
-					linesOffsetX+data.getW()*fieldW,
+					linesOffsetX+getData().getW()*fieldW,
 					gridOffsetY+y*fieldH);
 
 			if(y%5==0){
 				g.drawLine(	linesOffsetX-(prevLineL>lineL?prevLineL:lineL)*fieldW,
 						gridOffsetY+y*fieldH+1,
-						linesOffsetX+data.getW()*fieldW,
+						linesOffsetX+getData().getW()*fieldW,
 						gridOffsetY+y*fieldH+1);
 				g.setColor(lineColor);
 			}
@@ -804,12 +820,12 @@ public class GriddlerBoard extends JPanel{
 			prevLineL = lineL;
 		}
 		prevLineL = 0;
-		for(int x=0; x<=data.getW(); x++){
+		for(int x=0; x<=getData().getW(); x++){
 			//vertical lines
 			int lineL;
-			if(x!=data.getW()){
+			if(x!=getData().getW()){
 				try{
-					lineL = data.getDesc().getCol(x).size();
+					lineL = getData().getDesc().getCol(x).size();
 				}catch(IndexOutOfBoundsException e){
 					lineL = 0;
 				}
@@ -822,13 +838,13 @@ public class GriddlerBoard extends JPanel{
 			g.drawLine(	gridOffsetX+x*fieldW,
 					linesOffsetY-(prevLineL>lineL?prevLineL:lineL)*fieldH,
 					gridOffsetX+x*fieldW,
-					linesOffsetY+data.getH()*fieldH);
+					linesOffsetY+getData().getH()*fieldH);
 			prevLineL = lineL;
 			if(x%5==0){
 				g.drawLine(	gridOffsetX+x*fieldW+1,
 						linesOffsetY-(prevLineL>lineL?prevLineL:lineL)*fieldH,
 						gridOffsetX+x*fieldW+1,
-						linesOffsetY+data.getH()*fieldH);
+						linesOffsetY+getData().getH()*fieldH);
 
 				g.setColor(lineColor);
 			}
@@ -838,7 +854,7 @@ public class GriddlerBoard extends JPanel{
 		int lineL;
 		if(hlRow>=0){
 			try{
-				lineL = data.getDesc().getRow(hlRow).size();
+				lineL = getData().getDesc().getRow(hlRow).size();
 			}catch(IndexOutOfBoundsException e){
 				lineL = 0;
 			}
@@ -854,7 +870,7 @@ public class GriddlerBoard extends JPanel{
 		}
 		if(hlCol>=0){
 			try{
-				lineL = data.getDesc().getCol(hlCol).size();
+				lineL = getData().getDesc().getCol(hlCol).size();
 			}catch(IndexOutOfBoundsException e){
 				lineL = 0;
 			}
