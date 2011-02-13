@@ -1,5 +1,7 @@
 package griddler;
 
+import java.util.ArrayList;
+
 
 /**
  *
@@ -21,6 +23,7 @@ public interface GriddlerData extends Cloneable{
 	void setCol(int n, int[] col);
 
 	void setGrid(int[][] grid);
+	void setFields(ArrayList<Field> f);
 	void setFieldVal(int v, int x, int y);
 	void setDesc(Desc d);
 
@@ -29,6 +32,7 @@ public interface GriddlerData extends Cloneable{
 	Field getField(int x, int y);
 	Field getField(int x, int y, boolean emptyFields);
 	Field[] getFields();
+	ArrayList<Field> getFieldsAsArrayList();
 
 
 

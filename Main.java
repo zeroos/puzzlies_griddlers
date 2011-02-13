@@ -79,7 +79,7 @@ public class Main{
 	}
 
 	private static void createAndShowGUI() {
-		createAndShowGUI();
+		createAndShowGUI(null);
 	}
 	private static void createAndShowGUI(String file) {
 		f = new JFrame(TR.t("Griddler tester"));
@@ -88,7 +88,10 @@ public class Main{
 	//	f.setFocusTraversalKeys(KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS, Collections.EMPTY_SET);
 
 
-		if(file!=null) board = new griddler.GriddlerBoard(new griddler.GriddlerStaticData(file));
+		if(file!=null){
+			board = new griddler.GriddlerBoard(new griddler.GriddlerStaticData(file));
+			board.setEditData(new griddler.GriddlerStaticData(file));
+		}
 		else board = new griddler.GriddlerBoard();
 		solver = new griddler.GriddlerSolver(board);
 
@@ -139,6 +142,10 @@ public class Main{
 				if(chooser.showOpenDialog(f) !=JFileChooser.APPROVE_OPTION) return;
 				File newFile = chooser.getSelectedFile();
 				board.setData(new griddler.GriddlerStaticData(newFile.toURI().toString()));
+				board.setEditData(new griddler.GriddlerStaticData(newFile.toURI().toString()));
+
+				file = newFile;
+
 				f.setSize(f.getWidth()+1, f.getHeight());
 				solver.reinit();
 			}

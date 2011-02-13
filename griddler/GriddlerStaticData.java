@@ -152,6 +152,8 @@ public class GriddlerStaticData implements GriddlerData{
 						if(qName == "colors"){
 							curSubEl = null;
 						}else if(curSubSubEl == "line" || curSubSubEl == "line5" || curSubSubEl == "hlLine" || curSubSubEl == "bgColor"){
+							//Not nice, man, not nice...
+							if(curSubSubEl != "bgColor") curSubSubEl=curSubSubEl+"Color";
 							pref.setInt(curSubSubEl, Integer.parseInt(value.substring(1), 16));
 							curSubSubEl = null;
 						}
@@ -246,6 +248,9 @@ public class GriddlerStaticData implements GriddlerData{
 		fireFieldChanged(-1,-1);
 		checkBoardFinished();
 	}
+	public void setFields(ArrayList<Field> fields){
+		this.fields = fields;
+	}
 	public void setDesc(Desc d){
 		desc = d;
 	}
@@ -313,6 +318,9 @@ public class GriddlerStaticData implements GriddlerData{
 		return getField(getFieldVal(x,y), emptyFields);
 	}
 
+	public ArrayList<Field> getFieldsAsArrayList(){
+		return fields;
+	}
 	public Field[] getFields(){
 		return fields.toArray(new Field[]{ });
 	}
@@ -729,6 +737,7 @@ public class GriddlerStaticData implements GriddlerData{
 		ret += descToXML(1);
 		ret += boardToXML();
 		ret += "</griddler>";
+		System.out.println("MD5: " + getBoardDataMD5());
 		return ret;
 	}
 	public String getBoardDataString(){
@@ -764,7 +773,8 @@ public class GriddlerStaticData implements GriddlerData{
 			String msg = getBoardDataString(true);
 			MessageDigest m=MessageDigest.getInstance("MD5");
 			m.update(msg.getBytes());
-			return new BigInteger(1,m.digest()).toString(16);
+			String result = new BigInteger(1,m.digest()).toString(16);
+			return ("00000000000000000000000000000000" + result).substring(result.length());
 		}catch(NoSuchAlgorithmException e){
 			System.err.println("MD5 algorithm not found.");
 			return "";

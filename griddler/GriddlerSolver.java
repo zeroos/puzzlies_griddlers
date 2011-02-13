@@ -11,7 +11,7 @@ import java.util.Iterator;
 
 
 public class GriddlerSolver{
-	public static final boolean VERBOSE = false;
+	public static final boolean VERBOSE = true;
 
 	GriddlerBoard board;
 	GriddlerData data;

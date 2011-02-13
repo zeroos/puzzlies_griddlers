@@ -27,8 +27,11 @@ public class MyPreferences{
 	}
 	public int getInt(String key, int def){
 		Object val = map.get(key);
-		if(val != null) return ((Integer)val).intValue();
-		else return def;
+		if(val != null){
+			return ((Integer)val).intValue();
+		}else{
+			return def;
+		}
 	}
 	public String get(String key, String def){
 		String val = (String)map.get(key);

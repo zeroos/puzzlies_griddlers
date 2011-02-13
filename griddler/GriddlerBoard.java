@@ -157,7 +157,7 @@ public class GriddlerBoard extends JPanel{
 
 
 		lineColor = new Color(pref.getInt("lineColor", new Color(0x66, 0x66, 0x66).getRGB()));
-		line5Color = new Color(pref.getInt("line5Color", new Color(0x00, 0x00, 0x00).getRGB()));
+		line5Color = new Color(pref.getInt("line5Color", new Color(0x33, 0x33, 0x33).getRGB()));
 		hlLineColor = new Color(pref.getInt("hlLineColor", new Color(0xff, 0xff, 0x00).getRGB()));
 		bgColor = new Color(pref.getInt("bgColor", new Color (0xcc,0xcc,0xcc, 0x88).getRGB()));
 		setBackground(bgColor);
@@ -167,7 +167,7 @@ public class GriddlerBoard extends JPanel{
 				lineColor = new Color(pref.getInt("lineColor", new Color(0x66, 0x66, 0x66).getRGB()));
 				line5Color = new Color(pref.getInt("line5Color", new Color(0x00, 0x00, 0x00).getRGB()));
 				hlLineColor = new Color(pref.getInt("hlLineColor", new Color(0xff, 0xff, 0x00).getRGB()));
-				bgColor = new Color(pref.getInt("bgColor", new Color (0xcc,0xcc,0xcc, 0x88).getRGB()));
+				bgColor = new Color(pref.getInt("bgColor", new Color (0xcc,0xcc,0xcc).getRGB()));
 				setBackground(bgColor);
 				repaint();
 			}
@@ -396,7 +396,7 @@ public class GriddlerBoard extends JPanel{
 			}
 			public void mouseReleased(MouseEvent e){
 				if(selectMode == BLOCK && selectionInProgress){
-					undo(); //mouse was pressed one time and we have to undo it
+					//undo(); //mouse was pressed one time and we have to undo it
 					final int startX = currentlySelectedFieldX < lastSelectedFieldX?currentlySelectedFieldX:lastSelectedFieldX;
 					final int startY = currentlySelectedFieldY < lastSelectedFieldY?currentlySelectedFieldY:lastSelectedFieldY;
 					final int endX = currentlySelectedFieldX > lastSelectedFieldX?currentlySelectedFieldX:lastSelectedFieldX;
@@ -594,6 +594,9 @@ public class GriddlerBoard extends JPanel{
 			return editData;
 		}
 	}
+	public void setEditData(GriddlerData gd){
+		editData = gd;
+	}
 	public void setData(GriddlerData gd){
 		for(GriddlerDataListener listener: data.getGriddlerDataListeners()){
 			gd.addGriddlerDataListener(listener);
@@ -647,8 +650,10 @@ public class GriddlerBoard extends JPanel{
 		}
 		if(editMode){//synchronise descriptions and data size
 			editData.setDesc(data.getDesc());
+			editData.setFields(data.getFieldsAsArrayList());
 		}else{
 			data.setDesc(editData.getDesc());
+			data.setFields(editData.getFieldsAsArrayList());
 			data.crop(editData.getW(), editData.getH());
 		}
 		calcGridSize();
