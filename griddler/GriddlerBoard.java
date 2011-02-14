@@ -16,6 +16,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseMotionAdapter;
 import java.lang.Math;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import javax.swing.Action;
@@ -40,7 +41,7 @@ import utils.TR;
 
 public class GriddlerBoard extends JPanel{
 	private GriddlerData data;
-	private GriddlerData editData;
+	private GriddlerStaticData editData;
 	private MyPreferences pref;
 	public Stopwatch stopwatch;
 	private UndoManager undoManager = new UndoManager();
@@ -435,11 +436,11 @@ public class GriddlerBoard extends JPanel{
 				selectionInProgress = false;
 			}
 		});
-		addGriddlerDataListenerToData();
+		addGriddlerDataListenerToData(data);
 	}
 
-	private void addGriddlerDataListenerToData(){
-		getData().addGriddlerDataListener(new GriddlerDataListener(){
+	private void addGriddlerDataListenerToData(GriddlerData d){
+		d.addGriddlerDataListener(new GriddlerDataListener(){
 			public void fieldChanged(int x, int y){
 				if(x==-1){
 					calcGridSize();
@@ -595,9 +596,32 @@ public class GriddlerBoard extends JPanel{
 		}
 	}
 	public void setEditData(GriddlerData gd){
-		editData = gd;
+		if(gd == null){
+			setEditMode(false);
+			editData = null;
+		}else{
+			editData = new GriddlerStaticData();
+			editData.setDesc(data.getDesc());
+			editData.setFields(gd.getFieldsAsArrayList());
+			int[][] oldGrid = gd.getGrid();
+			int[][] newGrid = new int[oldGrid.length][oldGrid[0].length];
+
+			for(int x=0; x<oldGrid.length; x++){
+				for(int y=0; y<oldGrid[0].length; y++){
+					newGrid[x][y] = oldGrid[x][y];
+				}
+			}
+
+			editData.setGrid(newGrid);
+			editData.crop(data.getW(), data.getH());
+			for(GriddlerDataListener listener: gd.getGriddlerDataListeners()){
+				editData.addGriddlerDataListener(listener);
+			}
+		}
 	}
 	public void setData(GriddlerData gd){
+		setEditMode(false);
+		setEditData(null);
 		for(GriddlerDataListener listener: data.getGriddlerDataListeners()){
 			gd.addGriddlerDataListener(listener);
 		}
@@ -640,20 +664,14 @@ public class GriddlerBoard extends JPanel{
 		}
 		fireHlChange();
 	}
+
 	public void setEditMode(boolean editMode){
 		this.editMode = editMode;
 		if(editMode && editData == null){
-			editData = new GriddlerStaticData();
-			for(GriddlerDataListener gdl: data.getGriddlerDataListeners()){
-				editData.addGriddlerDataListener(gdl);
-			}
+			setEditData(data);
 		}
-		if(editMode){//synchronise descriptions and data size
-			editData.setDesc(data.getDesc());
-			editData.setFields(data.getFieldsAsArrayList());
-		}else{
-			data.setDesc(editData.getDesc());
-			data.setFields(editData.getFieldsAsArrayList());
+		if(!editMode && editData != null){
+			//crop board if going to normal mode
 			data.crop(editData.getW(), editData.getH());
 		}
 		calcGridSize();

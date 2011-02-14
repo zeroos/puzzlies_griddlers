@@ -68,9 +68,7 @@ public class FieldsManager extends JDialog{
 
 	JRadioButton color1Radio;
 	JRadioButton color2Radio;
-
-	private static FieldsManager instance;
-
+	static FieldsManager instance;
 	public static FieldsManager getInstance(Window owner, GriddlerData d){
 		return getInstance(owner, d, -1);
 	}
@@ -82,7 +80,8 @@ public class FieldsManager extends JDialog{
 		return getInstance(owner, d, fieldNum, Field.SOLID, d.getField(fieldNum).getColor1(), d.getField(fieldNum).getColor2());
 	}
 	public static FieldsManager getInstance(Window owner, GriddlerData d, int fieldNum, int type, Color color1, Color color2){
-		if(instance == null) instance = new FieldsManager(owner, d, fieldNum, type, color1, color2);
+		//not any more singleton
+		instance = new FieldsManager(owner, d, fieldNum, type, color1, color2);
 		instance.fieldsList.setSelectedIndex(fieldNum);
 		instance.setLocationRelativeTo(owner);
 		instance.setVisible(true);

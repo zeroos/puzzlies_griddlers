@@ -145,10 +145,10 @@ public class ColorsManager extends JDialog{
 		add(colorChooser);
 		//color1 and color2
 		ButtonGroup buttonGroup = new ButtonGroup();
-		lineColorRadio = new JRadioButton(TR.t("Lines color"));
-		line5ColorRadio = new JRadioButton(TR.t("Bolded lines color"));
-		hlLineColorRadio = new JRadioButton(TR.t("Highlighted lines color"));
-		bgColorRadio = new JRadioButton(TR.t("Background color"));
+		lineColorRadio = new JRadioButton(TR.t("Lines colour"));
+		line5ColorRadio = new JRadioButton(TR.t("Bolded lines colour"));
+		hlLineColorRadio = new JRadioButton(TR.t("Highlighted lines colour"));
+		bgColorRadio = new JRadioButton(TR.t("Background colour"));
 		lineColorRadio.setSelected(true);
 		c.gridwidth = 1;
 		layout.setConstraints(lineColorRadio, c);
