@@ -81,7 +81,8 @@ public class FieldsManager extends JDialog{
 	}
 	public static FieldsManager getInstance(Window owner, GriddlerData d, int fieldNum, int type, Color color1, Color color2){
 		//not any more singleton
-		instance = new FieldsManager(owner, d, fieldNum, type, color1, color2);
+		if(instance == null || d!=instance.data)
+			instance = new FieldsManager(owner, d, fieldNum, type, color1, color2);
 		instance.fieldsList.setSelectedIndex(fieldNum);
 		instance.setLocationRelativeTo(owner);
 		instance.setVisible(true);
@@ -139,6 +140,13 @@ public class FieldsManager extends JDialog{
 
 
 		//buttons
+		JButton swapColorsButton = new JButton(TR.t("<-->"));
+		swapColorsButton.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent e){
+				swapColors();
+			}
+		});
+
 		JButton cancelButton = new JButton(TR.t("cancel"));
 		cancelButton.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent e){
@@ -192,17 +200,21 @@ public class FieldsManager extends JDialog{
 		add(colorChooser);
 		//color1 and color2
 		ButtonGroup buttonGroup = new ButtonGroup();
+		JPanel colorsPanel = new JPanel();
 		color1Radio = new JRadioButton(TR.t("First color"));
 		color2Radio = new JRadioButton(TR.t("Second color"));
 		color1Radio.setSelected(true);
-		c.gridwidth = 1;
-		layout.setConstraints(color1Radio, c);
 		c.gridwidth = GridBagConstraints.REMAINDER;
-		layout.setConstraints(color2Radio, c);
-		add(color1Radio);
-		add(color2Radio);
+//		layout.setConstraints(color1Radio, c);
+		c.gridwidth = GridBagConstraints.REMAINDER;
+//		layout.setConstraints(color2Radio, c);
+		layout.setConstraints(colorsPanel, c);
+		colorsPanel.add(color1Radio);
+		colorsPanel.add(swapColorsButton);
+		colorsPanel.add(color2Radio);
 		buttonGroup.add(color1Radio);
 		buttonGroup.add(color2Radio);
+		add(colorsPanel);
 		//buttons
 		c.anchor = GridBagConstraints.WEST;
 		c.gridwidth = 1;
@@ -274,6 +286,11 @@ public class FieldsManager extends JDialog{
 		repaint();
 	}
 
+	public void swapColors(){
+		Color temp = getColor1();
+		setColor1(getColor2());
+		setColor2(temp);
+	}
 	public void setColor1(Color newColor){
 		color1 = newColor;
 		refresh();
