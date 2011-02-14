@@ -671,7 +671,8 @@ public class GriddlerBoard extends JPanel{
 			setEditData(data);
 		}
 		if(!editMode && editData != null){
-			//crop board if going to normal mode
+			//if going to normal mode from edit mode
+			data.setDesc(editData.getDesc());
 			data.crop(editData.getW(), editData.getH());
 		}
 		calcGridSize();
