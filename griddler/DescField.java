@@ -48,7 +48,7 @@ class DescField{
 	public void paint(Graphics g, Field f, int x, int y, int w, int h){
 		//paints itself on g, needs Field to paint background
 		Color descColor = new Color(pref.getInt("descColor", new Color(0x00, 0x00, 0x00).getRGB()));
-		Color inactiveDescColor = new Color(pref.getInt("inactiveDescColor", new Color(0x66, 0x66, 0x66).getRGB()));
+		Color inactiveDescColor = new Color(pref.getInt("inactiveDescColor", new Color(0xaa, 0xaa, 0xaa).getRGB()));
 		Color highlightedDescColorBright = new Color(pref.getInt("highlightedDescColor", new Color(0xff, 0x99, 0x00).getRGB()));
 		Color highlightedDescColorDark = new Color(pref.getInt("highlightedDescColor", new Color(0xaa, 0x00, 0x00).getRGB()));
 		

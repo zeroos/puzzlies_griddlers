@@ -43,6 +43,14 @@ public class DescPreview extends JPanel implements ChangeListener{
 
 		fieldW = pref.getInt("fieldW", 20);
 		fieldH = pref.getInt("fieldH", 20);
+		board.getData().addGriddlerDataListener(new GriddlerDataListener(){
+				public void fieldChanged(int x, int y){ }
+				public void fieldsListChanged(){ }
+				public void descChanged(){
+					repaint();
+				}
+				public void boardFinished(){ }
+		});
 		board.addHlChangeListener(this);
 	}
 	protected void paintComponent(Graphics g){

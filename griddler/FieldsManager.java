@@ -263,6 +263,7 @@ public class FieldsManager extends JDialog{
 
 	}
 	public void apply(){
+		editedFieldNum = fieldsList.getSelectedIndex();
 		Field f = (Field)typesList.getSelectedValue();
 		Field newField = new Field(f.getType(), f.getColor1(), f.getColor2());
 		try{
