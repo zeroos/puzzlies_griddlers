@@ -187,7 +187,7 @@ public class GriddlerStaticData implements GriddlerData{
 									}else{
 										fatalError(new SAXParseException("unknown field value: '" + ch + "'", null));
 									}
-									grid[data_col++][data_row] = val;
+									setFieldVal(val, data_col++, data_row);
 								}
 							}
 						}catch(Exception e){
@@ -212,8 +212,8 @@ public class GriddlerStaticData implements GriddlerData{
 		}
 		System.out.println("DONE");
 
-		while(desc.getColsSize() > grid.length) addRightCol();
-		while(desc.getRowsSize() > grid[0].length) addBottomRow();
+		while(desc.getColsSize() > getW()) addRightCol();
+		while(desc.getRowsSize() > getH()) addBottomRow();
 		checkBoardFinished();
 	}
 	private void init(){
@@ -223,9 +223,9 @@ public class GriddlerStaticData implements GriddlerData{
 		fields.add(new Field(Field.SOLID, new Color(0x00, 0x00, 0x00)));
 		desc = new Desc();
 		setGrid(new int[15][10]);
-		for(int x=0; x<grid.length; x++){
-			for(int y=0; y<grid[0].length; y++){
-				grid[x][y] = -1;
+		for(int x=0; x<getW(); x++){
+			for(int y=0; y<getH(); y++){
+				setFieldVal(-1,x,y);
 			}
 		}
 	}
@@ -248,6 +248,7 @@ public class GriddlerStaticData implements GriddlerData{
 		this.grid = grid;
 		fireFieldChanged(-1,-1);
 		checkBoardFinished();
+		countFilledFields();
 	}
 	public void setFields(ArrayList<Field> fields){
 		this.fields = fields;
@@ -338,9 +339,10 @@ public class GriddlerStaticData implements GriddlerData{
 		fields.remove(i);
 		for(int x=0; x<getW(); x++){
 			for(int y=0; y<getH(); y++){
-				if(grid[x][y] > 0){
-					if(grid[x][y] == i) grid[x][y] = -1;
-					else if(grid[x][y]>i) grid[x][y]--;
+				int fieldVal = getFieldVal(x,y);
+				if(fieldVal > 0){
+					if(fieldVal == i) setFieldVal(-1, x, y);
+					else if(fieldVal>i) setFieldVal(fieldVal-1, x, y);
 				}
 			}
 		}
@@ -359,23 +361,23 @@ public class GriddlerStaticData implements GriddlerData{
 		addCol(0);
 	}
 	public void addRightCol(){
-		addCol(grid.length);
+		addCol(getW());
 	}
 	public void addTopRow(){
 		addRow(0);
 	}
 	public void addBottomRow(){
-		addRow(grid[0].length);
+		addRow(getH());
 	}
 	public void addCol(int pos){
 		//adds new column at given position
-		int[][] newGrid = new int[grid.length+1][grid[0].length];
-		for(int y=0; y<grid[0].length; y++){
-			for(int x=0; x<grid.length+1; x++){
+		int[][] newGrid = new int[getW()+1][getH()];
+		for(int y=0; y<getH(); y++){
+			for(int x=0; x<getW()+1; x++){
 				if(x<pos){
-					newGrid[x][y] = grid[x][y];
+					newGrid[x][y] = getFieldVal(x,y);
 				}else if(x>pos){
-					newGrid[x][y] = grid[x-1][y];
+					newGrid[x][y] = getFieldVal(x-1, y);
 				}else{
 					//for new fields
 					newGrid[x][y] = -1;
@@ -387,13 +389,13 @@ public class GriddlerStaticData implements GriddlerData{
 	}
 	public void addRow(int pos){
 		//adds new row at a given position
-		int[][] newGrid = new int[grid.length][grid[0].length+1];
-		for(int y=0; y<grid[0].length+1; y++){
-			for(int x=0; x<grid.length; x++){
+		int[][] newGrid = new int[getW()][getH()+1];
+		for(int y=0; y<getH()+1; y++){
+			for(int x=0; x<getW(); x++){
 				if(y<pos){
-					newGrid[x][y] = grid[x][y];
+					newGrid[x][y] = getFieldVal(x, y);
 				}else if(y>pos){
-					newGrid[x][y] = grid[x][y-1];
+					newGrid[x][y] = getFieldVal(x, y-1);
 				}else{
 					//for new fields
 					newGrid[x][y] = -1;
@@ -405,13 +407,13 @@ public class GriddlerStaticData implements GriddlerData{
 	}
 	public void delRow(int pos){
 		//deletes a row from a given position
-		int[][] newGrid = new int[grid.length][grid[0].length-1];
-		for(int y=0; y<grid[0].length-1; y++){
-			for(int x=0; x<grid.length; x++){
+		int[][] newGrid = new int[getW()][getH()-1];
+		for(int y=0; y<getH()-1; y++){
+			for(int x=0; x<getW(); x++){
 				if(y<pos){
-					newGrid[x][y] = grid[x][y];
+					newGrid[x][y] = getFieldVal(x,y);
 				}else if(x>= pos){
-					newGrid[x][y] = grid[x][y+1];
+					newGrid[x][y] = getFieldVal(x,y+1);
 				}
 			}
 		}
@@ -420,13 +422,13 @@ public class GriddlerStaticData implements GriddlerData{
 	}
 	public void delCol(int pos){
 		//deletes a column from a given position
-		int[][] newGrid = new int[grid.length-1][grid[0].length];
-		for(int y=0; y<grid[0].length; y++){
-			for(int x=0; x<grid.length-1; x++){
+		int[][] newGrid = new int[getW()-1][getH()];
+		for(int y=0; y<getH(); y++){
+			for(int x=0; x<getW()-1; x++){
 				if(x<pos){
-					newGrid[x][y] = grid[x][y];
+					newGrid[x][y] = getFieldVal(x,y);
 				}else if(x>=pos){
-					newGrid[x][y] = grid[x+1][y];
+					newGrid[x][y] = getFieldVal(x+1,y);
 				}
 			}
 		}
@@ -518,7 +520,7 @@ public class GriddlerStaticData implements GriddlerData{
 			return 0;//row not found
 		}
 		for(int i=0; i<getW(); i++){
-			gridRow[i] = grid[i][row];
+			gridRow[i] = getFieldVal(i,row);
 		}
 		return checkDescSetFinished(descRow, gridRow, changeDesc);
 	}
@@ -534,7 +536,7 @@ public class GriddlerStaticData implements GriddlerData{
 			return 0;//row not found
 		}
 		for(int i=0; i<getH(); i++){
-			gridCol[i] = grid[col][i];
+			gridCol[i] = getFieldVal(col, i);
 		}
 		return checkDescSetFinished(descCol, gridCol, changeDesc);
 	}
@@ -602,12 +604,20 @@ public class GriddlerStaticData implements GriddlerData{
 		}
 		return returnVal;
 	}
+	public void countFilledFields(){
+		filledFields = 0;
+		for(int x=0; x<getW(); x++){
+			for(int y=0; y<getH(); y++){
+				if(getFieldVal(x,y) >= 0) filledFields++;
+			}
+		}
+	}
 
 	public void crop(int w, int h){
 		//crops the board to the specified size, deletes fields from left and right border
-		while(w < this.getW()) delCol(grid.length);
+		while(w < this.getW()) delCol(getW());
 		while(w > this.getW()) addRightCol();
-		while(h < this.getH()) delRow(grid[0].length);
+		while(h < this.getH()) delRow(getH());
 		while(h > this.getH()) addBottomRow();
 	}
 	public void crop(){
@@ -617,20 +627,20 @@ public class GriddlerStaticData implements GriddlerData{
 		int sum2 = 0;//last column
 		int sum3 = 0;//first row
 		int sum4 = 0;//last row
-		for(int y=0; y<grid[0].length; y++){
+		for(int y=0; y<getH(); y++){
 			sum1 += grid[0][y]<=0?0:grid[0][y];
-			sum2 += grid[grid.length-1][y]<=0?0:grid[grid.length-1][y];
+			sum2 += grid[getW()-1][y]<=0?0:grid[getW()-1][y];
 		}
-		for(int x=0; x<grid.length; x++){
+		for(int x=0; x<getW(); x++){
 			sum3 += grid[x][0]<=0?0:grid[x][0];
 			sum4 += grid[x][grid[x].length-1]<=0?0:grid[x][grid[x].length-1];
 		}
 		if(sum1 == 0 || sum2 == 0 || sum3 == 0 || sum4 == 0){
-			if(grid[0].length > 1 || grid.length > 1){
-				if(grid[0].length > 1 && sum4 == 0) delRow(grid[0].length);
-				if(grid[0].length > 1 && sum3 == 0) delRow(0);
-				if(grid.length > 1 && sum2 == 0) delCol(grid.length);
-				if(grid.length > 1 && sum1 == 0) delCol(0);
+			if(getH() > 1 || getW() > 1){
+				if(getH() > 1 && sum4 == 0) delRow(getH());
+				if(getH() > 1 && sum3 == 0) delRow(0);
+				if(getW() > 1 && sum2 == 0) delCol(getW());
+				if(getW() > 1 && sum1 == 0) delCol(0);
 				crop();
 			}
 		}
@@ -641,36 +651,36 @@ public class GriddlerStaticData implements GriddlerData{
 		desc = new Desc();
 
 		//generate rows
-		for(int y=0; y<grid[0].length; y++){
+		for(int y=0; y<getH(); y++){
 			int prevVal = -1;
 			int len = 0;
 			ArrayList<DescField> row = new ArrayList<DescField>();
-			for(int x=0; x<grid.length; x++){
+			for(int x=0; x<getW(); x++){
 				len++;
-				if(grid[x][y] != prevVal){
+				if(getFieldVal(x,y) != prevVal){
 					if(prevVal > 0){
 						row.add(new DescField(len, prevVal));
 					}
 					len = 0;
-					prevVal = grid[x][y];
+					prevVal = getFieldVal(x,y);
 				}
 			}
 			if(prevVal > 0) row.add(new DescField(++len, prevVal));
 			desc.addRow(row);
 		}
 		//generate cols
-		for(int x=0; x<grid.length; x++){
+		for(int x=0; x<getW(); x++){
 			int prevVal = -1;
 			int len = 0;
 			ArrayList<DescField> col = new ArrayList<DescField>();
-			for(int y=0; y<grid[0].length; y++){
+			for(int y=0; y<getH(); y++){
 				len++;
-				if(grid[x][y] != prevVal){
+				if(getFieldVal(x,y) != prevVal){
 					if(prevVal > 0){
 						col.add(new DescField(len, prevVal));
 					}
 					len = 0;
-					prevVal = grid[x][y];
+					prevVal = getFieldVal(x,y);
 				}
 			}
 			if(prevVal > 0) col.add(new DescField(++len, prevVal));
@@ -687,8 +697,8 @@ public class GriddlerStaticData implements GriddlerData{
 		fieldsUsed[0] = 1; //background is always used
 		for(int x=0; x<getW(); x++){
 			for(int y=0; y<getH(); y++){
-				if(grid[x][y] > 0){
-					fieldsUsed[grid[x][y]]++;
+				if(getFieldVal(x,y) > 0){
+					fieldsUsed[getFieldVal(x,y)]++;
 				}
 			}
 		}
@@ -752,9 +762,9 @@ public class GriddlerStaticData implements GriddlerData{
 	}
 	public String getBoardDataString(boolean fillBg) throws Exception{
 		String ret = "";
-		for(int y=0; y<grid[0].length; y++){
-			for(int x=0; x<grid.length; x++){
-				int ch = grid[x][y];
+		for(int y=0; y<getH(); y++){
+			for(int x=0; x<getW(); x++){
+				int ch = getFieldVal(x,y);
 
 				if(ch < 0){
 					if(fillBg){

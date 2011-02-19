@@ -17,6 +17,7 @@ import javax.swing.event.ChangeListener;
 
 public class GriddlerSolver{
 	public static final boolean VERBOSE = false;
+	public boolean printResult;
 
         EventListenerList progressChangeListenerList = new EventListenerList();
 	GriddlerBoard board;
@@ -26,13 +27,19 @@ public class GriddlerSolver{
 	static int assumptionCounter = 0;
 
 	public GriddlerSolver(Desc desc){
+		this.printResult = false;
 	}
 	public GriddlerSolver(GriddlerBoard board){
 		this.data = board.getData();
 		this.board = board;
+		this.printResult = false;
 	}
 	public GriddlerSolver(GriddlerData data){
 		this.data = data;
+		this.printResult = false;
+	}
+	public void setPrintResult(boolean p){
+		printResult = p;
 	}
 	
 	public void setProgress(int progress){
@@ -65,6 +72,8 @@ public class GriddlerSolver{
 			solve();
 		}catch(UnsolvableException e){
 			return false;
+		}catch(InterruptedException e){
+			return false;
 		}
 		return true;
 
@@ -77,18 +86,19 @@ public class GriddlerSolver{
 		try{
 			solve(1);
 		}catch(UnsolvableException e){
-			if(VERBOSE) System.out.println("UNSOLVABLE");
+			if(printResult) System.out.println("UNSOLVABLE");
+		}catch(InterruptedException e){
+			if(printResult) System.out.println("INTERRUPTED");
 		}
 	}
 
-	public void solve() throws UnsolvableException{
+	public void solve() throws UnsolvableException, InterruptedException{
 		solve(-1);
 	}
 	public void updateProgress(){
 		int fieldsCompleted = data.getFilledFields();
 		int allFields = data.getW()*data.getH();
 		int fieldsLeft = allFields - fieldsCompleted;
-		System.out.println("FC" + fieldsCompleted);
 	//	if(assumptionCounter == 0){
 			setProgress(fieldsCompleted*100 / allFields);
 			return;
@@ -97,7 +107,20 @@ public class GriddlerSolver{
 //		setProgress(fieldsCompleted*100 / allFields);
 
 	}
-	public void solve(int numberOfSteps) throws UnsolvableException{
+
+
+	public boolean checkBoardFinished(){
+		if(data.checkBoardFinished(false) == 1){
+			if(printResult){
+				System.out.println("COMPLETED");
+				System.out.println(assumptionCounter + " ASSUMPTIONS");
+			}
+			return true;
+		}
+		return false;
+
+	}
+	public void solve(int numberOfSteps) throws UnsolvableException, InterruptedException{
 		try{
 			updateProgress();
 			if(numberOfSteps == 0) return;
@@ -121,24 +144,22 @@ public class GriddlerSolver{
 				changed = true;
 				if(numberOfSteps == 0) return;
 			}
-
-			if(data.checkBoardFinished(false) == 1){
-				System.out.println("COMPLETED");
-				System.out.println(assumptionCounter + " ASSUMPTIONS");
-				return;
-			}
+			if(checkBoardFinished()) return;
 			makeAssumption();
-			if(data.checkBoardFinished(false) != 1) throw new UnsolvableException(UnsolvableException.CONTRADICTION); //end of board, no solutions
+			if(!checkBoardFinished()) throw new UnsolvableException(UnsolvableException.CONTRADICTION); //end of board, no solutions
 		}catch(UnsolvableException e){
-			if(e.getReason() == e.MULTIPLE_SOLUTIONS) System.out.println("MULTIPLE_SOLUTIONS");
-			else if(e.getReason() == e.CONTRADICTION){
-				System.out.println("CONTRADICTION");
-//				e.printStackTrace();
+			if(printResult){
+				if(e.getReason() == e.MULTIPLE_SOLUTIONS){
+					System.out.println("MULTIPLE_SOLUTIONS");
+				}else if(e.getReason() == e.CONTRADICTION){
+					System.out.println("CONTRADICTION");
+	//				e.printStackTrace();
+				}
 			}
 			throw e;
 		} catch (InterruptedException e) {
-			System.out.println("INTERRUPTED");
-			return;
+			if(printResult) System.out.println("INTERRUPTED");
+			throw e;
 		}
 	}
 

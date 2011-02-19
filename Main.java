@@ -105,6 +105,7 @@ public class Main{
 		}
 		else board = new griddler.GriddlerBoard();
 		solver = new griddler.GriddlerSolver(board);
+		solver.setPrintResult(true);
 
 		f.setJMenuBar(getMenuBar());
 
@@ -343,11 +344,6 @@ public class Main{
 		menuItemNextStep.setMnemonic(KeyEvent.VK_N);
 		menuSolve.add(menuItemNextStep);
 
-		solver.addProgressChangeListener(new ChangeListener(){
-			public void stateChanged(ChangeEvent e){
-				System.out.println(solver.getProgress());
-			}
-		});
 		JMenuItem menuItemIsSolvable = new JMenuItem(new AbstractAction(TR.t("Is solvable?")){
 			public void actionPerformed(ActionEvent e){
 				Object[] options = {TR.t("Cancel")};
@@ -357,6 +353,7 @@ public class Main{
 				class myWorker extends SwingWorker<Object, Void>{
 					@Override
 					public Object doInBackground(){
+						solver.setPrintResult(true);
 						solver.isSolvable();
 						return new Object();
 					}
