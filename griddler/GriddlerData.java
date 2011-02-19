@@ -44,7 +44,7 @@ public interface GriddlerData extends Cloneable{
 
 
 
-	String toXML();
+	String toXML() throws Exception;
 	String getBoardDataMD5();
 
 	GriddlerData clone();
@@ -70,4 +70,9 @@ public interface GriddlerData extends Cloneable{
 	//solving
 	int checkBoardFinished();
 	int checkBoardFinished(boolean changeDesc);
+	int checkRowFinished(int rowNum);
+	int checkRowFinished(int rowNum, boolean changeDesc);
+	int checkColFinished(int colNum);
+	int checkColFinished(int colNum, boolean changeDesc);
+	int getFilledFields();
 }

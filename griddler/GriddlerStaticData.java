@@ -29,6 +29,7 @@ public class GriddlerStaticData implements GriddlerData{
 	int[][] grid;
 	ArrayList<Field> fields;
 	Desc desc;
+	int filledFields = 0; //how many fields are filled with any value, used to calculate progress
 
 	EventListenerList listenerList = new EventListenerList();
 
@@ -38,7 +39,7 @@ public class GriddlerStaticData implements GriddlerData{
 	public GriddlerStaticData(String uri){
 		init();
 		fields = new ArrayList<Field>();
-		grid = new int[][]{{-1}};
+		setGrid(new int[][]{{-1}});
 		try{
 			System.out.print("Parsing griddler: " + (new URI(uri)).getPath() + "\t");
 		}catch(Exception e){
@@ -128,8 +129,8 @@ public class GriddlerStaticData implements GriddlerData{
 					}else if(curEl == "board"){
 						if(curSubEl == null && qName == "data"){
 							try{
-								grid = new int[Integer.parseInt(attributes.getValue("width"))]
-									[Integer.parseInt(attributes.getValue("height"))];
+								setGrid(new int[Integer.parseInt(attributes.getValue("width"))]
+									[Integer.parseInt(attributes.getValue("height"))]);
 							}catch(Exception e){
 								fatalError(new SAXParseException("incorrect board width or height", null));
 							}
@@ -221,7 +222,7 @@ public class GriddlerStaticData implements GriddlerData{
 		fields.add(new Field(Field.SOLID, new Color(0xff, 0xff, 0xff)));
 		fields.add(new Field(Field.SOLID, new Color(0x00, 0x00, 0x00)));
 		desc = new Desc();
-		grid = new int[15][10];
+		setGrid(new int[15][10]);
 		for(int x=0; x<grid.length; x++){
 			for(int y=0; y<grid[0].length; y++){
 				grid[x][y] = -1;
@@ -280,14 +281,21 @@ public class GriddlerStaticData implements GriddlerData{
 	}
 
 
+	public int getFilledFields(){
+		return filledFields;
+	}
 
 	public int getFieldVal(int x, int y){
 		return grid[x][y];
 	}
 	public void setFieldVal(int v, int x, int y){
 		if(v==grid[x][y]) return;
+		if(v>=0 && grid[x][y] < 0){
+			filledFields++;
+		}else if(v<0){
+			filledFields--;
+		}
 		grid[x][y] = v;
-
 //		checkRowFinished(y);
 //		checkColFinished(x);
 		checkBoardFinished();
@@ -498,7 +506,6 @@ public class GriddlerStaticData implements GriddlerData{
 		if(returnVal == 1) fireBoardFinished();
 		return returnVal;
 	}
-
 	public int checkRowFinished(int row){
 		return checkRowFinished(row, true);
 	}
@@ -723,13 +730,13 @@ public class GriddlerStaticData implements GriddlerData{
 	public String descToXML(int indent){
 		return desc.toXML(indent);
 	}
-	public String boardToXML(){
+	public String boardToXML() throws Exception{
 		String ret = "\t<board>\n\t\t<data width=\"" + getW() + "\" height=\"" + getH() + "\">";
 		ret += getBoardDataString();
 		ret += "</data>\n\t</board>\n";
 		return ret;
 	}
-	public String toXML(){
+	public String toXML() throws Exception{
 		String ret = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
 			"<griddler api=\"" + Double.toString(API) + "\">\n";
 		ret += metaToXML();
@@ -740,10 +747,10 @@ public class GriddlerStaticData implements GriddlerData{
 		System.out.println("MD5: " + getBoardDataMD5());
 		return ret;
 	}
-	public String getBoardDataString(){
+	public String getBoardDataString() throws Exception{
 		return getBoardDataString(false);
 	}
-	public String getBoardDataString(boolean fillBg){
+	public String getBoardDataString(boolean fillBg) throws Exception{
 		String ret = "";
 		for(int y=0; y<grid[0].length; y++){
 			for(int x=0; x<grid.length; x++){
@@ -759,9 +766,11 @@ public class GriddlerStaticData implements GriddlerData{
 					ret += Integer.toString(ch);
 				}else if(ch < ((int)'Z' - (int)'A')+10){
 					ret += (char)((int)'A' + (int)ch - 10);
-				}else{
+				}else if(ch < ((int)'Z' - (int)'A')*2+10){
 					ch -= (int)'Z' - (int)'A';
 					ret += (char)((int)'a' + (int)ch - 10);
+				}else{
+					throw new Exception("Too many fields!");
 				}
 			}
 			ret += "\n";
@@ -777,6 +786,9 @@ public class GriddlerStaticData implements GriddlerData{
 			return ("00000000000000000000000000000000" + result).substring(result.length());
 		}catch(NoSuchAlgorithmException e){
 			System.err.println("MD5 algorithm not found.");
+			return "";
+		}catch(Exception e){
+			System.err.println("Error while genereting md5 sum.");
 			return "";
 		}
 	}

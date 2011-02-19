@@ -10,10 +10,14 @@ import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 import java.util.Collections;
 import javax.swing.AbstractAction;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.SwingUtilities;
+import javax.swing.SwingWorker;
+import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
@@ -55,8 +59,15 @@ public class Main{
 			saveAs(parent);
 			return;
 		}
-		String data = board.getData().toXML();
 		try{
+			String data;
+			try{
+				data = board.getData().toXML();
+			}catch(Exception e){
+				JOptionPane.showMessageDialog(parent, TR.t("There are too many colours in this picture, cannot save."), 
+					TR.t("Error"), JOptionPane.ERROR_MESSAGE);
+				throw e;
+			}
 			OutputStreamWriter osw = new OutputStreamWriter(new FileOutputStream(file), "UTF-8");
 			osw.write(data, 0, data.length());
 			osw.close();
@@ -307,15 +318,55 @@ public class Main{
 
 		JMenuItem menuItemNextStep = new JMenuItem(new AbstractAction(TR.t("Next step")){
 			public void actionPerformed(ActionEvent e){
-				System.out.println(solver.descNextStep());
+				Object[] options = {TR.t("Cancel")};
+				JOptionPane optionPane = new JOptionPane(TR.t("Looking for a next step..."), JOptionPane.INFORMATION_MESSAGE,
+				       JOptionPane.DEFAULT_OPTION, null, options, options[0]);
+				final JDialog dialog = optionPane.createDialog(f, TR.t("Working..."));
+				class MyWorker extends SwingWorker<Object, Void>{
+					@Override
+					public Object doInBackground(){
+						System.out.println(solver.descNextStep());
+						return new Object();
+					}
+					@Override
+					public void done(){
+						dialog.dispose();
+					}
+				};
+				MyWorker bgTask = new MyWorker();
+				bgTask.execute();
+				dialog.setVisible(true);
+				bgTask.cancel(true);
+				
 			}
 		});
 		menuItemNextStep.setMnemonic(KeyEvent.VK_N);
 		menuSolve.add(menuItemNextStep);
 
+		solver.addProgressChangeListener(new ChangeListener(){
+			public void stateChanged(ChangeEvent e){
+				System.out.println(solver.getProgress());
+			}
+		});
 		JMenuItem menuItemIsSolvable = new JMenuItem(new AbstractAction(TR.t("Is solvable?")){
 			public void actionPerformed(ActionEvent e){
-				System.out.println(solver.isSolvable());
+				Object[] options = {TR.t("Cancel")};
+				JOptionPane optionPane = new JOptionPane(TR.t("Solving this puzzle for you..."), JOptionPane.INFORMATION_MESSAGE,
+				       JOptionPane.DEFAULT_OPTION, null, options, options[0]);
+				final JDialog dialog = optionPane.createDialog(f, TR.t("Working..."));
+				class myWorker extends SwingWorker<Object, Void>{
+					@Override
+					public Object doInBackground(){
+						solver.isSolvable();
+						return new Object();
+					}
+					@Override
+					public void done(){
+						dialog.dispose();
+					}
+				};
+				(new myWorker()).execute();
+				dialog.setVisible(true);
 			}
 		});
 		menuItemIsSolvable.setMnemonic(KeyEvent.VK_S);
