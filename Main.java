@@ -106,6 +106,7 @@ public class Main{
 		else board = new griddler.GriddlerBoard();
 		solver = new griddler.GriddlerSolver(board);
 		solver.setPrintResult(true);
+        solver.setAssumptionsLimit(-1);
 
 		f.setJMenuBar(getMenuBar());
 
@@ -140,6 +141,7 @@ public class Main{
 				board.setData(new griddler.GriddlerStaticData());
 				f.setSize(f.getWidth()+1, f.getHeight());
 				solver.reinit();
+                file = null;
 			}
 		});
 		menuItemNew.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, InputEvent.CTRL_DOWN_MASK));

@@ -157,10 +157,10 @@ public class GriddlerBoard extends JPanel{
 		setOpaque(true);
 
 
-		lineColor = new Color(pref.getInt("lineColor", new Color(0x66, 0x66, 0x66).getRGB()));
-		line5Color = new Color(pref.getInt("line5Color", new Color(0x33, 0x33, 0x33).getRGB()));
+		lineColor = new Color(pref.getInt("lineColor", new Color(51,51,51).getRGB()));
+		line5Color = new Color(pref.getInt("line5Color", new Color(90,90,90).getRGB()));
 		hlLineColor = new Color(pref.getInt("hlLineColor", new Color(0xff, 0xff, 0x00).getRGB()));
-		bgColor = new Color(pref.getInt("bgColor", new Color (0xcc,0xcc,0xcc, 0x88).getRGB()));
+		bgColor = new Color(pref.getInt("bgColor", new Color (230,230,230).getRGB()));
 		setBackground(bgColor);
 
 		pref.addChangeListener(new ChangeListener(){

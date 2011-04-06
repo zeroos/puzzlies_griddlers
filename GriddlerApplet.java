@@ -85,7 +85,7 @@ public class GriddlerApplet extends JApplet{
 							data += "&" + URLEncoder.encode("timetoken", "UTF-8") + "=" 
 								+ URLEncoder.encode(getParameter("timetoken"), "UTF-8");
 							data += "&" + URLEncoder.encode("time", "UTF-8") + "="
-								+ URLEncoder.encode(Long.toString(board.stopwatch.getTime()), "UTF-8");
+								+ URLEncoder.encode(Long.toString(board.stopwatch.getTime()/1000), "UTF-8");
 							data += "&" + URLEncoder.encode("was_paused", "UTF-8") + "="
 								+ URLEncoder.encode(board.stopwatch.wasPaused()?"True":"False", "UTF-8");
 	

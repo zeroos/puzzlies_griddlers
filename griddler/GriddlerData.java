@@ -46,6 +46,8 @@ public interface GriddlerData extends Cloneable{
 
 	String toXML() throws Exception;
 	String getBoardDataMD5();
+	String getBoardDataString() throws Exception;
+	String getBoardDataString(boolean fillBg) throws Exception;
 
 	GriddlerData clone();
 //	Object clone();

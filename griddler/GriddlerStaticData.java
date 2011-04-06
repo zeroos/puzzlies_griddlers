@@ -37,13 +37,18 @@ public class GriddlerStaticData implements GriddlerData{
 		init();
 	}
 	public GriddlerStaticData(String uri){
+		this(uri, true);
+	}
+	public GriddlerStaticData(String uri, boolean printParsingStatus){
 		init();
 		fields = new ArrayList<Field>();
 		setGrid(new int[][]{{-1}});
-		try{
-			System.out.print("Parsing griddler: " + (new URI(uri)).getPath() + "\t");
-		}catch(Exception e){
-			System.out.print("Parsing griddler\t\t");
+		if(printParsingStatus){
+			try{
+				System.out.print("Parsing griddler: " + (new URI(uri)).getPath() + "\t");
+			}catch(Exception e){
+				System.out.print("Parsing griddler\t\t");
+			}
 		}
 		try{
 			SAXParser parser = (SAXParserFactory.newInstance()).newSAXParser();
@@ -204,13 +209,16 @@ public class GriddlerStaticData implements GriddlerData{
 				}
 			});
 		}catch(SAXException e){
-			System.err.println("SAX exception " + e.getMessage());
+			System.out.println("SAX exception " + e.getMessage());
+			return;
 		}catch(ParserConfigurationException e){
-			System.err.println("Conf exception");
+			System.out.println("Conf exception");
+			return;
 		}catch(IOException e){
-			System.err.println("IOException");
+			System.out.println("IOException");
+			return;
 		}
-		System.out.println("DONE");
+		if(printParsingStatus) System.out.println("DONE");
 
 		while(desc.getColsSize() > getW()) addRightCol();
 		while(desc.getRowsSize() > getH()) addBottomRow();
@@ -552,10 +560,15 @@ public class GriddlerStaticData implements GriddlerData{
 		int length = 0;
 		int boxesInSolution = 0; //the number of boxes that should be in this row in solution
 		int boxesInRow = 0; //the number of boxes in this row
-		int returnVal = 0;
+        int boxesSet = 0; //number of boxes not separated by anything else
+		int returnVal = -2;//undetermined
+        int longestDesc = 0;
+        int fieldSetLength = 0;
 		for(int i=0; i<descRow.size(); i++){
 			//count boxesInSolution
-			boxesInSolution += descRow.get(i).getLength();
+            DescField desc = descRow.get(i);
+			boxesInSolution += desc.getLength();
+            if(longestDesc < desc.getLength()) longestDesc = desc.getLength();
 		}
 		for(int i=0; i<gridRow.length; i++){
 			if(gridRow[i] > 0) boxesInRow++;//count boxes
@@ -568,6 +581,10 @@ public class GriddlerStaticData implements GriddlerData{
 					if(prevField > 0){
 						//if its not the first block of fields
 						try{
+                            if(length > longestDesc){
+                                returnVal = -1;
+                                break;
+                            }
 							if(descRow.get(descPos).getLength() == length && descRow.get(descPos).getValue() == prevField){
 								//if the field block and its description match
 								descPos++;
@@ -577,7 +594,7 @@ public class GriddlerStaticData implements GriddlerData{
 							}
 						}catch(Exception e){
 							descPos = 0;
-							break;
+                            returnVal = 0;
 						}
 					}
 					length = 1;
@@ -588,7 +605,10 @@ public class GriddlerStaticData implements GriddlerData{
 				prevField = gridRow[gridPos];
 				gridPos++;
 			}
-			if(descPos==descRow.size()) returnVal = 1; //correct solution
+            if(returnVal == -2){
+                if(descPos==descRow.size()) returnVal = 1; //correct solution
+                else returnVal = 0; //unfinished
+            }
 		}
 		if(changeDesc){
 			for(int i=0; i<descRow.size(); i++){

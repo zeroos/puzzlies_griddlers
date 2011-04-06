@@ -74,12 +74,15 @@ class DescField{
 		String str = Integer.toString(length);
 
 		int fontSize = (int)(h*0.65)+1;
-		int strWidth;
+		int strWidth=0;
+        int prevStrWidth=1;
 
 		Font font;
 		do{
 			fontSize--;
 			font = new Font(Font.SERIF, state==WARNING?Font.BOLD:Font.PLAIN, fontSize);
+            if(strWidth==prevStrWidth) break;
+            prevStrWidth = strWidth;
 		}while((strWidth = g.getFontMetrics().stringWidth(str)) > 0.9*w);
 
 		g.setFont(font);

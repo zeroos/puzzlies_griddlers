@@ -11,36 +11,71 @@ import java.util.Iterator;
 import javax.swing.event.EventListenerList;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import java.util.GregorianCalendar;
 
 
 
 
-public class GriddlerSolver{
+public class GriddlerSolver extends Thread{
 	public static final boolean VERBOSE = false;
-	public boolean printResult;
+	public boolean printResult = false;
+	public boolean printSolution = false;
+    public int assumptionsLimit = -1;
 
-        EventListenerList progressChangeListenerList = new EventListenerList();
+    EventListenerList progressChangeListenerList = new EventListenerList();
 	GriddlerBoard board;
 	GriddlerData data;
 	int progress;
 	String stepDesc = "";
 	static int assumptionCounter = 0;
 
+
+	public static void main(String[] arg){
+		if(arg.length < 1) System.out.println("ERROR\nNo url provided.");
+		GriddlerSolver solver = new GriddlerSolver(new GriddlerStaticData(arg[0], false));
+		solver.setPrintResult(true);
+		solver.setPrintSolution(true);
+        solver.setAssumptionsLimit(-1);
+		long startTime = new GregorianCalendar().getTimeInMillis();
+		long timeout = 60000;//60 seconds
+		solver.start();//starts a new thread
+		while(true){
+			try{
+				Thread.sleep(1000);
+			}catch(InterruptedException e){ }
+			if(new GregorianCalendar().getTimeInMillis() - startTime > timeout) break;
+			if(!solver.isAlive()) return;
+		}
+		System.out.println("TIMEOUT");
+		System.exit(1);
+		return;
+	}
+		
+
+	public void run(){
+		isSolvable();
+	}
 	public GriddlerSolver(Desc desc){
-		this.printResult = false;
 	}
 	public GriddlerSolver(GriddlerBoard board){
 		this.data = board.getData();
 		this.board = board;
-		this.printResult = false;
 	}
 	public GriddlerSolver(GriddlerData data){
 		this.data = data;
-		this.printResult = false;
 	}
 	public void setPrintResult(boolean p){
 		printResult = p;
 	}
+	public void setPrintSolution(boolean p){
+		printSolution = p;
+	}
+    public void setAssumptionsLimit(int l){
+        assumptionsLimit = l;
+    }
+    public int getAssumptionsLimit(){
+        return assumptionsLimit;
+    }
 	
 	public void setProgress(int progress){
 		if(progress==this.progress) return;
@@ -107,6 +142,9 @@ public class GriddlerSolver{
 //		setProgress(fieldsCompleted*100 / allFields);
 
 	}
+	public void periodicalCheck() throws InterruptedException{
+		if(Thread.currentThread().isInterrupted()) throw new InterruptedException();
+	}
 
 
 	public boolean checkBoardFinished(){
@@ -114,6 +152,13 @@ public class GriddlerSolver{
 			if(printResult){
 				System.out.println("COMPLETED");
 				System.out.println(assumptionCounter + " ASSUMPTIONS");
+			}
+			if(printSolution){
+				try{
+					System.out.println(data.getBoardDataString(true));
+				}catch(Exception e){
+					System.out.println("ERROR");
+				}
 			}
 			return true;
 		}
@@ -144,8 +189,18 @@ public class GriddlerSolver{
 				changed = true;
 				if(numberOfSteps == 0) return;
 			}
-			if(checkBoardFinished()) return;
-			makeAssumption();
+
+           if(assumptionsLimit != 0){
+                while(makeAssumption(1)){
+            		if(checkBoardFinished()) return;
+                }
+                if(assumptionsLimit != 1){
+                    while(makeAssumption(assumptionsLimit)){
+            		    if(checkBoardFinished()) return;
+                    }
+                }
+            }
+            //makeAssumption(-1);
 			if(!checkBoardFinished()) throw new UnsolvableException(UnsolvableException.CONTRADICTION); //end of board, no solutions
 		}catch(UnsolvableException e){
 			if(printResult){
@@ -163,45 +218,57 @@ public class GriddlerSolver{
 		}
 	}
 
-	private void makeAssumption() throws UnsolvableException, InterruptedException{
+	private boolean makeAssumption(int assumptionsLimit) throws UnsolvableException, InterruptedException{
+        boolean fieldFound = false;
 		for(int x=0; x<data.getW(); x++){
 			for(int y=0; y<data.getH(); y++){
 				//find an unfilled field
 				if(data.getFieldVal(x,y) == -1){
-					if(VERBOSE) System.out.println("-1!");
 					//copy data
 					GriddlerData solution = null;
 					for(int i=0; i<data.getFields().length; i++){
 						GriddlerData newData = data.clone();
+                        int fieldVal = (i+1)%data.getFields().length;
 						//for each field value
-						newData.setFieldVal(i, x, y);
+						newData.setFieldVal(fieldVal, x, y);
 						assumptionCounter++;
 						int assumptionNum = assumptionCounter;
-						if(VERBOSE) System.out.println("Assumption " + assumptionCounter + ": field " + x + "x"+ y + " set to " + i);
-						if(data.checkBoardFinished(false) == -1){
-							if(VERBOSE) System.out.println(" ^^^ instantly failed");
-							continue;
-						}
-						if(Thread.currentThread().isInterrupted()) throw new InterruptedException();
+						if(VERBOSE) System.out.println("Assumption " + assumptionCounter + ": field " + x + "x"+ y + " set to " + fieldVal);
+						periodicalCheck();
 						GriddlerSolver newSolver = new GriddlerSolver(newData);
+
+
+                        newSolver.setAssumptionsLimit(assumptionsLimit-1);
 						try{
 							newSolver.solve(); //if unsolveble throws exception
+
+
+                            if(!newSolver.checkBoardFinished() && fieldVal != 0){
+                                assumptionCounter--;
+                                //not last field and didn't found solution
+                                break;
+                            }
+
 							if(solution != null){
 								throw new UnsolvableException(UnsolvableException.MULTIPLE_SOLUTIONS);
 							}
 							solution = newSolver.getData().clone();
+                            fieldFound = true;
 							if(VERBOSE) System.out.println(assumptionNum + " success");
+                            
+
 						}catch(UnsolvableException e){
 							if(VERBOSE) System.out.println(assumptionNum + " failed");
+                            if(e.getReason() == e.MULTIPLE_SOLUTIONS) throw e;
 						}
 					}
 					if(solution != null) this.data.setGrid(solution.getGrid());
-					return;
+					return fieldFound;
 				}
 			}
 		}
 //		if(!data.checkBoardFinished(false)) throw new UnsolvableException(UnsolvableException.CONTRADICTION);
-		return;
+		return fieldFound;
 	}
 
 
@@ -210,7 +277,7 @@ public class GriddlerSolver{
 	}
 	private boolean forEachRowAndColumn(SolvingAlgorithm a, int stepLimit) throws UnsolvableException, InterruptedException{
 		boolean stepPerformed = false;
-		if(Thread.currentThread().isInterrupted()) throw new InterruptedException();
+		periodicalCheck();
 		updateProgress();
 		for(int i=0; i<data.getH() && stepLimit!=0; i++){
 			int finished = data.checkRowFinished(i, false);
@@ -233,7 +300,7 @@ public class GriddlerSolver{
 				}
 			}
 		}
-		if(stepPerformed) return stepPerformed;
+		if(stepLimit==0) return stepPerformed;
 		for(int i=0; i<data.getW() && stepLimit!=0; i++){
 			int finished = data.checkColFinished(i, false);
 			if(VERBOSE) System.out.println("###### Col " + i + ":");
@@ -322,7 +389,20 @@ public class GriddlerSolver{
 		ArrayList<DescField> ds;
 
 		public boolean solve(int[] fs, ArrayList<DescField> ds) throws UnsolvableException{
-			if(ds.size()==0) return false;
+            //returns wheather the new field was found or not
+			if(ds.size()==0){
+                boolean boardChanged = false;
+                int[] solution = new int[fs.length];
+                for(int i=0; i<fs.length; i++){
+                    if(fs[i] > 0) throw new UnsolvableException(UnsolvableException.CONTRADICTION);
+                    if(fs[i] != 0){
+                        solution[i] = 0;
+                        boardChanged = true;
+                    }
+                }
+                if(boardChanged) setNewFieldSet(solution);
+                return boardChanged;
+            }
 			possibleSolutions = new ArrayList<int[]>();
 			newFieldFound = false;
 			availableFieldValues = getAvailableFieldValues(ds);
@@ -351,6 +431,11 @@ public class GriddlerSolver{
 					System.out.println();
 				}
 			}
+
+            if(possibleSolutions.size() == 0){//no solutions for this line
+                if(VERBOSE) System.out.println("No solutions found.");
+                throw new UnsolvableException(UnsolvableException.CONTRADICTION);
+            }
 
 			//checks each possible sollution to determine new fields
 			for(int i=0; i<solution.length; i++){//for each field
@@ -464,7 +549,8 @@ public class GriddlerSolver{
 			for(int i=pos; i<pos+blockLength; i++){
 				if(fs[i] != -1 && fs[i] != blockValue){
 					if(VERBOSE) System.out.println("S: different color");
-					return 0;
+                    if(fs[i] == 0) return 0;
+                    return -1;
 				}
 			}
 			//check if not collides with any other block of the same value
