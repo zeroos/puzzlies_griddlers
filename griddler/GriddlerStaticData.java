@@ -260,6 +260,7 @@ public class GriddlerStaticData implements GriddlerData{
 	}
 	public void setFields(ArrayList<Field> fields){
 		this.fields = fields;
+		fireFieldsListChanged();
 	}
 	public void setDesc(Desc d){
 		desc = d;

@@ -11,7 +11,7 @@ import utils.Utils;
  * @author zeroos
  */
 
-class Field implements Icon{
+public class Field implements Icon{
 	private int type;
 	public Color color1;
 	public Color color2;
@@ -23,18 +23,18 @@ class Field implements Icon{
 
 	public static Field TRANSPARENT_FIELD = new Field(EMPTY, new Color(230,230,230), new Color(200, 200, 200));
 
-	Field(int type){
+	public Field(int type){
 		this.type = type;
 		this.color1 = new Color(0xcc,0xcc,0xcc);
 		this.color2 = color1.darker();
 	}
-	Field(int type, Color color){
+	public Field(int type, Color color){
 		this.type = type;
 		this.color1 = color;
 		this.color2 = color;
 		differentiateColors();
 	}
-	Field(int type, Color color1, Color color2){
+	public Field(int type, Color color1, Color color2){
 		this.type = type;
 		this.color1 = color1;
 		this.color2 = color2;
@@ -123,6 +123,18 @@ class Field implements Icon{
 		else return "UNDEFINED";
 		
 	}
+    public int hashCode(){
+        return (color1.hashCode()+color2.hashCode())/2+type;
+    }
+    public boolean equals(Object obj){
+        if(!(obj instanceof Field)) return false;
+        Field f2 = (Field)obj;
+        if(this.getColor1().equals(f2.getColor1()) &&
+            this.getColor2().equals(f2.getColor2()) &&
+            this.getType() == f2.getType()) return true;
+        return false;
+
+    }
 
 	public String toString(){
 		return toXML(0);

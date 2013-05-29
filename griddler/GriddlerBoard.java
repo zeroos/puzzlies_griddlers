@@ -103,6 +103,12 @@ public class GriddlerBoard extends JPanel{
 			redo();
 		}
 	};
+	public Action togglePause = new AbstractAction(){
+		public void actionPerformed(ActionEvent e) {
+			togglePause();
+		}
+	};
+
 	public Action nextSelectMode = new AbstractAction(){
 		public void actionPerformed(ActionEvent e){
 			nextSelectMode();
@@ -202,6 +208,9 @@ public class GriddlerBoard extends JPanel{
 		getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_Y,InputEvent.CTRL_MASK),"redo"); //ctrl+y for redo
 		getActionMap().put("undo", undo);
 		getActionMap().put("redo", redo);
+		
+        getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_PAUSE,0),"togglePause"); //ctrl+y for redo
+		getActionMap().put("togglePause", togglePause);
 
 		setFocusTraversalKeys(KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS, Collections.EMPTY_SET);
 		setFocusTraversalKeys(KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS, Collections.EMPTY_SET);

@@ -40,7 +40,7 @@ public interface GriddlerData extends Cloneable{
 
 	void addGriddlerDataListener(GriddlerDataListener l);
 	void removeGriddlerDataListener(GriddlerDataListener l);
-        GriddlerDataListener[] getGriddlerDataListeners();
+    GriddlerDataListener[] getGriddlerDataListeners();
 
 
 
